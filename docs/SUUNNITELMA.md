@@ -34,7 +34,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | 2 ✅ | Skaalat | 13 skaalaa ja moodia missä tahansa sävellajissa |
 | 3 ✅ | Navigointi | Soitin → vire → valikko |
 | 3c ✅ | Muistaminen | Soitin ja vire tallentuvat, avaus suoraan valikkoon |
-| 4 | Skaalojen syventäminen | (a) ✅ nimet/asteet, (b) ✅ oikeat ♭/# -nimet sävellajin mukaan, (c) ✅ blue notes, (d) asemat: pentatonisen boksit ja 3 säveltä kielellä, (e) arpeggiot, (f) kvinttiympyrä ja sointukierrot otelaudalla |
+| 4 | Skaalojen syventäminen | (a) ✅ nimet/asteet, (b) ✅ oikeat ♭/# -nimet sävellajin mukaan, (c) ✅ blue notes, (d) ✅ asemat: pentatonisen boksit ja 3 säveltä kielellä, (e) arpeggiot, (f) kvinttiympyrä ja sointukierrot otelaudalla |
 | 5 | Asetukset | Sävelten värit, otelaudan puulaji, tallennus |
 | 6 | Omat skaalat | Luo, muokkaa, poista |
 | 7 | Soinnut | Triadit, inversiot, sointukirjasto otteineen (ukulele). Avoimen virityksen sointukartta (sikarilaatikko, slide) |

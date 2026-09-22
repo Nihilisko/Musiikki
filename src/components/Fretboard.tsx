@@ -1,6 +1,8 @@
+import { useEffect, useRef } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { noteName, noteNameWithOctave } from '../music/notes';
+import { cellKey } from '../music/positions';
 import { pitchClass } from '../music/scales';
 import { noteColors } from '../theme/colors';
 
@@ -31,6 +33,10 @@ type Props = {
   flats?: boolean;
   /** Pitch classes of blue notes: always shown, in blue, even outside the scale. */
   blueNotes?: number[];
+  /** When given, only these cells (see `cellKey`) are shown, e.g. one scale position. */
+  visibleCells?: Set<string>;
+  /** Scroll the neck so this fret is near the left edge. */
+  scrollToFret?: number;
 };
 
 const FRET_WIDTH = 46;
@@ -49,7 +55,19 @@ export default function Fretboard({
   noteNames,
   flats = false,
   blueNotes = [],
+  visibleCells,
+  scrollToFret,
 }: Props) {
+  const scrollRef = useRef<ScrollView>(null);
+
+  // When the position changes, bring it into view.
+  useEffect(() => {
+    if (scrollToFret !== undefined) {
+      const x = scrollToFret <= 1 ? 0 : OPEN_WIDTH + (scrollToFret - 2) * FRET_WIDTH;
+      scrollRef.current?.scrollTo({ x, animated: true });
+    }
+  }, [scrollToFret]);
+
   // Without degree names there is nothing else to show, so fall back to note names.
   const mode = degreeLabels ? labelMode : 'names';
 
@@ -72,7 +90,7 @@ export default function Fretboard({
         ))}
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}>
         <View>
           <View style={styles.numberRow}>
             {fretNumbers.map((fret) => (
@@ -110,14 +128,16 @@ export default function Fretboard({
                       fret === 0 ? styles.openCell : styles.fretCell,
                     ]}
                   >
-                    <NoteDot
-                      midi={midi + fret}
-                      highlight={highlight}
-                      mode={mode}
-                      degreeLabels={degreeLabels}
-                      name={noteNames?.[pitchClass(midi + fret)] ?? noteName(midi + fret, flats)}
-                      blueNotes={blueNotes}
-                    />
+                    {(!visibleCells || visibleCells.has(cellKey(index, fret))) && (
+                      <NoteDot
+                        midi={midi + fret}
+                        highlight={highlight}
+                        mode={mode}
+                        degreeLabels={degreeLabels}
+                        name={noteNames?.[pitchClass(midi + fret)] ?? noteName(midi + fret, flats)}
+                        blueNotes={blueNotes}
+                      />
+                    )}
                   </View>
                 ))}
               </View>

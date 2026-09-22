@@ -6,6 +6,7 @@ import Fretboard, { type LabelMode } from '../components/Fretboard';
 import { BLUE_NOTES } from '../music/blueNotes';
 import { degreeLabels } from '../music/degrees';
 import { KEY_NAMES } from '../music/notes';
+import { cellKey, positionCount, positionName, scalePosition } from '../music/positions';
 import { SCALES, scalePitchClasses } from '../music/scales';
 import { spellScale } from '../music/spelling';
 import { useInstrument } from '../state/InstrumentContext';
@@ -24,6 +25,12 @@ export default function ScalesScreen() {
   const [scaleOption, setScaleOption] = useState(0);
   const [labelOption, setLabelOption] = useState(0);
   const [blueOptions, setBlueOptions] = useState<number[]>([]); // which BLUE_NOTES are on
+  const [positionOption, setPositionOption] = useState(0); // 0 = whole neck
+
+  function selectScale(option: number) {
+    setScaleOption(option);
+    setPositionOption(0); // scales have different numbers of positions
+  }
 
   function toggleBlue(index: number) {
     setBlueOptions((current) =>
@@ -36,6 +43,18 @@ export default function ScalesScreen() {
   const blueIntervals = blueOptions.map((i) => BLUE_NOTES[i].interval);
   const blueNotes = blueIntervals.map((interval) => (root + interval) % 12);
   const spelled = spellScale(root, scale, blueIntervals);
+
+  // Positions: 0 = whole neck, 1.. = one box / 3NPS shape.
+  const positions = scale ? positionCount(scale) : 0;
+  const positionOptions = scale
+    ? ['Whole neck', ...Array.from({ length: positions }, (_, i) => positionName(scale, i))]
+    : [];
+  const cells =
+    scale && positionOption > 0
+      ? scalePosition(tuning.strings, root, scale, positionOption - 1, blueNotes)
+      : undefined;
+  const visibleCells = cells && new Set(cells.map((c) => cellKey(c.string, c.fret)));
+  const firstFret = cells ? Math.min(...cells.map((c) => c.fret)) : 0;
   // The scale's notes in order, e.g. "A C D E♭ E G".
   const scaleNotes = scale
     ? scale.intervals.map((interval) => spelled.names[(root + interval) % 12]).join('  ')
@@ -47,7 +66,18 @@ export default function ScalesScreen() {
       <ChipRow options={KEY_NAMES} selected={root} onSelect={setRoot} />
 
       <Text style={styles.sectionLabel}>Scale</Text>
-      <ChipRow options={SCALE_OPTIONS} selected={scaleOption} onSelect={setScaleOption} />
+      <ChipRow options={SCALE_OPTIONS} selected={scaleOption} onSelect={selectScale} />
+
+      {positions > 0 && (
+        <>
+          <Text style={styles.sectionLabel}>Position</Text>
+          <ChipRow
+            options={positionOptions}
+            selected={positionOption}
+            onSelect={setPositionOption}
+          />
+        </>
+      )}
 
       <Text style={styles.sectionLabel}>Labels</Text>
       <ChipRow options={LABEL_OPTIONS} selected={labelOption} onSelect={setLabelOption} />
@@ -78,6 +108,8 @@ export default function ScalesScreen() {
           noteNames={spelled.names}
           flats={tuning.flats}
           blueNotes={blueNotes}
+          visibleCells={visibleCells}
+          scrollToFret={firstFret}
         />
       </View>
     </ScrollView>
