@@ -54,6 +54,6 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | 14 | Viritin | Kaikki vireet, 12-kielisen oktaavikielet erikseen, slide-intonaatiotreeni. Vaatii oman testiversion (APK) |
 | 15 | Suomen kieli | Jos päätetään tehdä |
 | 16 | Premium-päätös | Mitä maksun taakse. Kandidaatti: hidastus, A–B-luuppi, äänitys |
-| 17 | Julkaisu | Nimi, ikoni, Play Kauppa |
+| 17 | Julkaisu | Tehdään tässä vaiheessa ajantasainen tarkistuslista Play Kauppaan viennistä (Googlen vaatimukset muuttuvat usein). Muistissa jo nyt: tavaramerkkihaku nimelle ScaleSmith (EUIPO, USPTO, Google Play), käynnistyskuva ja sovelluksen sisäinen tunnus (slug "musiikki") |
 
 Jokainen vaihe tehdään pieninä paloina, jotka testataan ennen seuraavaa.
