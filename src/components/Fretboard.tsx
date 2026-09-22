@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   openCell: {
-    backgroundColor: '#2b2b2b',
+    backgroundColor: '#2a211c',
     borderRightWidth: 5,
     borderRightColor: '#eee8d5',
   },

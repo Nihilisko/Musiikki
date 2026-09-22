@@ -53,7 +53,7 @@ export const lightColors: Colors = {
 // Settings will let the user change these later.
 export const noteColors = {
   /** Notes when no scale is chosen. */
-  plain: { background: '#1e1e1e', text: '#ffffff' },
+  plain: { background: '#241c18', text: '#ffffff' },
   root: { background: '#d93a3a', text: '#ffffff' },
   scale: { background: '#2e9d57', text: '#ffffff' },
   blue: { background: '#1e7be0', text: '#ffffff' },

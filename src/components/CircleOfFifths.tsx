@@ -18,9 +18,9 @@ const SEGMENT = 30; // degrees per key (360 / 12)
 
 // The circle looks the same in both themes, like a printed cardboard disc.
 const colors = darkColors;
-const MASK = '#0c0d0f';
-const LINE = '#8a9099';
-const CELL = '#26292f';
+const MASK = '#0f0b09';
+const LINE = '#9a8b7e';
+const CELL = '#2c231e';
 
 /**
  * Numerals printed on the fixed mask, like a cardboard circle of fifths.
@@ -198,8 +198,8 @@ export default function CircleOfFifths({ index, mode, onChange, onModeChange, si
         {(['major', 'minor'] as KeyMode[]).map((legendMode) => {
           const legend = LEGENDS[legendMode];
           const active = legendMode === mode;
-          const textColor = active ? colors.accent : '#5d626b';
-          const lineColor = active ? LINE : '#3a3d44';
+          const textColor = active ? colors.accent : '#6f6257';
+          const lineColor = active ? LINE : '#40342c';
           const slots = [-1, 0, 1];
           const cells = [
             ...slots.map((slot) => ({ ring: rings.outer, slot, text: legend.outer[slot + 1] })),
@@ -296,7 +296,7 @@ function HubLabel({ x, y, text, size, active }: HubLabelProps) {
     <SvgText
       x={x}
       y={y + size * 0.35}
-      fill={active ? colors.accent : '#5d626b'}
+      fill={active ? colors.accent : '#6f6257'}
       fontSize={size}
       fontFamily="sans-serif"
       fontWeight="700"

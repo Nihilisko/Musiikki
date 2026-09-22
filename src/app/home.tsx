@@ -3,6 +3,7 @@ import { router, type Href } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import Wordmark from '../components/Wordmark';
 import type { Colors } from '../theme/colors';
 import { useTheme, useThemedStyles } from '../theme/ThemeContext';
 
@@ -31,6 +32,10 @@ export default function HomeScreen() {
   const styles = useThemedStyles(makeStyles);
   return (
     <ScrollView contentContainerStyle={styles.grid}>
+      {/* Takes a whole row, so the tiles start below it. */}
+      <View style={styles.logo}>
+        <Wordmark height={52} />
+      </View>
       {TILES.map((tile) => {
         const ready = tile.href !== undefined;
         return (
@@ -63,6 +68,11 @@ function makeStyles(colors: Colors) {
       flexWrap: 'wrap',
       padding: 16,
       gap: 12,
+    },
+    logo: {
+      width: '100%',
+      alignItems: 'center',
+      paddingBottom: 4,
     },
     tile: {
       // Two tiles per row: each takes a bit under half, the gap fills the rest.
