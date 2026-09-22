@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } fr
 
 import ChipRow from '../components/ChipRow';
 import CircleOfFifths from '../components/CircleOfFifths';
+import ProgressionPractice from '../components/ProgressionPractice';
 import { diatonicChords, keyName, type KeyMode } from '../music/circle';
 import { useLockedKey } from '../state/KeyContext';
 import { colors } from '../theme/colors';
@@ -82,6 +83,8 @@ export default function CircleScreen() {
       {lockedKey && !isLocked && (
         <Text style={styles.hint}>Locked now: {keyName(lockedKey.index, lockedKey.mode)}</Text>
       )}
+
+      <ProgressionPractice index={index} mode={mode} />
     </ScrollView>
   );
 }

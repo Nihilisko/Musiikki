@@ -37,6 +37,12 @@ type Props = {
   visibleCells?: Set<string>;
   /** Scroll the neck so this fret is near the left edge. */
   scrollToFret?: number;
+  /**
+   * Colours for each pitch class (index 0 = C ... 11 = B), for chord progressions.
+   * A note in several chords gets a stripe of each colour; notes without colours are hidden.
+   * When given, this replaces the scale colours.
+   */
+  noteFill?: (string[] | undefined)[];
 };
 
 const FRET_WIDTH = 46;
@@ -57,6 +63,7 @@ export default function Fretboard({
   blueNotes = [],
   visibleCells,
   scrollToFret,
+  noteFill,
 }: Props) {
   const scrollRef = useRef<ScrollView>(null);
 
@@ -136,6 +143,8 @@ export default function Fretboard({
                         degreeLabels={degreeLabels}
                         name={noteNames?.[pitchClass(midi + fret)] ?? noteName(midi + fret, flats)}
                         blueNotes={blueNotes}
+                        fill={noteFill?.[pitchClass(midi + fret)]}
+                        hasFill={noteFill !== undefined}
                       />
                     )}
                   </View>
@@ -153,13 +162,40 @@ type NoteDotProps = {
   midi: number;
   name: string;
   blueNotes: number[];
+  /** Progression colours for this note, one stripe each. */
+  fill?: string[];
+  /** True when progression colours are in use, so notes without them are hidden. */
+  hasFill: boolean;
   highlight?: Highlight;
   mode: LabelMode;
   degreeLabels?: string[];
 };
 
-function NoteDot({ midi, name, highlight, mode, degreeLabels, blueNotes }: NoteDotProps) {
+function NoteDot({
+  midi,
+  name,
+  highlight,
+  mode,
+  degreeLabels,
+  blueNotes,
+  fill,
+  hasFill,
+}: NoteDotProps) {
   const pc = pitchClass(midi);
+  if (hasFill) {
+    if (!fill || fill.length === 0) return null;
+    return (
+      <View style={[styles.note, styles.striped]}>
+        {/* One vertical stripe per chord the note belongs to */}
+        <View style={styles.stripes}>
+          {fill.map((color, i) => (
+            <View key={i} style={{ flex: 1, backgroundColor: color }} />
+          ))}
+        </View>
+        <NoteText mode={mode} name={name} degree={degreeLabels?.[pc] ?? ''} color="#ffffff" />
+      </View>
+    );
+  }
   const isBlue = blueNotes.includes(pc);
   if (highlight && !highlight.pitchClasses.includes(pc) && !isBlue) {
     return null; // not in the scale: leave the fret empty
@@ -173,20 +209,24 @@ function NoteDot({ midi, name, highlight, mode, degreeLabels, blueNotes }: NoteD
       : highlight
         ? noteColors.scale
         : noteColors.plain;
-  const degree = degreeLabels?.[pc] ?? '';
-  const textStyle = [styles.noteText, { color: role.text }];
-
   return (
     <View style={[styles.note, { backgroundColor: role.background }, highlight && styles.outlined]}>
-      {mode === 'names' && <Text style={textStyle}>{name}</Text>}
-      {mode === 'degrees' && <Text style={textStyle}>{degree}</Text>}
-      {mode === 'both' && (
-        <>
-          <Text style={[textStyle, styles.smallText]}>{name}</Text>
-          <Text style={[textStyle, styles.tinyText]}>{degree}</Text>
-        </>
-      )}
+      <NoteText mode={mode} name={name} degree={degreeLabels?.[pc] ?? ''} color={role.text} />
     </View>
+  );
+}
+
+type NoteTextProps = { mode: LabelMode; name: string; degree: string; color: string };
+
+function NoteText({ mode, name, degree, color }: NoteTextProps) {
+  const textStyle = [styles.noteText, { color }];
+  if (mode === 'names') return <Text style={textStyle}>{name}</Text>;
+  if (mode === 'degrees') return <Text style={textStyle}>{degree}</Text>;
+  return (
+    <>
+      <Text style={[textStyle, styles.smallText]}>{name}</Text>
+      <Text style={[textStyle, styles.tinyText]}>{degree}</Text>
+    </>
   );
 }
 
@@ -276,6 +316,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  striped: {
+    overflow: 'hidden', // keeps the stripes inside the round shape
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
+  },
+  stripes: {
+    ...StyleSheet.absoluteFill,
+    flexDirection: 'row',
   },
   outlined: {
     // A thin light edge keeps dark notes visible on dark wood.
