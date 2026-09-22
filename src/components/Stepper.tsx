@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '../theme/colors';
+import type { Colors } from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/ThemeContext';
 
 type Props = {
   value: number;
@@ -14,6 +15,7 @@ type Props = {
 
 /** A − value + counter. The buttons stop at `min` and `max`. */
 export default function Stepper({ value, min, max, onChange, caption }: Props) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.stepper}>
       <StepButton icon="remove" disabled={value <= min} onPress={() => onChange(value - 1)} />
@@ -31,6 +33,8 @@ export default function Stepper({ value, min, max, onChange, caption }: Props) {
 type StepButtonProps = { icon: 'add' | 'remove'; disabled: boolean; onPress: () => void };
 
 function StepButton({ icon, disabled, onPress }: StepButtonProps) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -43,38 +47,41 @@ function StepButton({ icon, disabled, onPress }: StepButtonProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  stepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
-  },
-  button: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.border,
-  },
-  dim: {
-    opacity: 0.4,
-  },
-  middle: {
-    alignItems: 'center',
-    minWidth: 64,
-  },
-  value: {
-    color: colors.accent,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  caption: {
-    color: '#d6d9de', // faint white: easier to read than grey on the dark button
-    fontSize: 10,
-  },
-});
+function makeStyles(colors: Colors) {
+  return StyleSheet.create({
+    stepper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 4,
+      paddingVertical: 2,
+      borderRadius: 16,
+      backgroundColor: colors.surface,
+    },
+    button: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.border,
+    },
+    dim: {
+      opacity: 0.4,
+    },
+    middle: {
+      alignItems: 'center',
+      minWidth: 64,
+    },
+    value: {
+      color: colors.accentText,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    caption: {
+      color: colors.text, // brighter than the muted grey, so it reads well on the button
+      opacity: 0.85,
+      fontSize: 10,
+    },
+  });
+}

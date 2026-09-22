@@ -18,7 +18,8 @@ import {
 import { pitchClass, SCALES, scalePitchClasses } from '../music/scales';
 import { spellChord, spellScale } from '../music/spelling';
 import { useInstrument } from '../state/InstrumentContext';
-import { colors, noteColors } from '../theme/colors';
+import { noteColors, type Colors } from '../theme/colors';
+import { useThemedStyles } from '../theme/ThemeContext';
 
 const MODE_OPTIONS = ['Scales', 'Arpeggios'];
 // First option shows every note; the rest are the scales.
@@ -42,6 +43,7 @@ type FretboardView = {
 };
 
 export default function ScalesScreen() {
+  const styles = useThemedStyles(makeStyles);
   const { instrument, tuning } = useInstrument();
   const [modeOption, setModeOption] = useState(0); // 0 = scales, 1 = arpeggios
   const [root, setRoot] = useState(0); // pitch class, 0 = C
@@ -216,44 +218,46 @@ function arpeggioView(
   };
 }
 
-const styles = StyleSheet.create({
-  content: {
-    paddingBottom: 32,
-  },
-  modeRow: {
-    marginTop: 16,
-  },
-  sectionLabel: {
-    color: colors.textMuted,
-    fontSize: 13,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    paddingHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  summary: {
-    paddingHorizontal: 16,
-    marginTop: 24,
-    gap: 4,
-  },
-  summaryTitle: {
-    color: colors.text,
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  summaryNotes: {
-    color: colors.accent,
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  summaryBlue: {
-    color: noteColors.blue.background,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  fretboard: {
-    marginTop: 16,
-    paddingLeft: 12,
-  },
-});
+function makeStyles(colors: Colors) {
+  return StyleSheet.create({
+    content: {
+      paddingBottom: 32,
+    },
+    modeRow: {
+      marginTop: 16,
+    },
+    sectionLabel: {
+      color: colors.textMuted,
+      fontSize: 13,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      paddingHorizontal: 16,
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    summary: {
+      paddingHorizontal: 16,
+      marginTop: 24,
+      gap: 4,
+    },
+    summaryTitle: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: '700',
+    },
+    summaryNotes: {
+      color: colors.accentText,
+      fontSize: 17,
+      fontWeight: '600',
+    },
+    summaryBlue: {
+      color: noteColors.blue.background,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+    fretboard: {
+      marginTop: 16,
+      paddingLeft: 12,
+    },
+  });
+}

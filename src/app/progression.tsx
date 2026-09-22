@@ -6,10 +6,12 @@ import ProgressionPractice from '../components/ProgressionPractice';
 import { keyName } from '../music/circle';
 import { useLockedKey } from '../state/KeyContext';
 import { lockLandscape, lockPortrait } from '../state/orientation';
-import { colors } from '../theme/colors';
+import type { Colors } from '../theme/colors';
+import { useThemedStyles } from '../theme/ThemeContext';
 
 // Practice view for the locked key: progressions and the whole neck, turned sideways.
 export default function ProgressionScreen() {
+  const styles = useThemedStyles(makeStyles);
   const { lockedKey } = useLockedKey();
 
   // Sideways while this screen is open, upright again when leaving.
@@ -39,23 +41,25 @@ export default function ProgressionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingTop: 8,
-  },
-  empty: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    padding: 24,
-    backgroundColor: colors.background,
-  },
-  emptyText: {
-    color: colors.textMuted,
-    fontSize: 16,
-    textAlign: 'center',
-  },
-});
+function makeStyles(colors: Colors) {
+  return StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingTop: 8,
+    },
+    empty: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 16,
+      padding: 24,
+      backgroundColor: colors.background,
+    },
+    emptyText: {
+      color: colors.textMuted,
+      fontSize: 16,
+      textAlign: 'center',
+    },
+  });
+}

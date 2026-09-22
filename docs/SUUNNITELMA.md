@@ -22,6 +22,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | Harjoitusnäkymä | Lock-nappi lukitsee sävellajin ja avaa harjoitusnäkymän, joka kääntyy automaattisesti vaakaan (ja takaisin pystyyn, kun palataan). Koko kaula mahtuu leveydelle. Yläreunassa yksi rivi: ‹ Circle -nappi, kierto-, sointu- ja merkintävalikot sekä asemalaskuri − 0 + (0 = koko kaula). Valittu asema kirkkaana, muu kaula himmeänä |
 | Sointukierrot | Kvinttiympyrästä valitaan kierto (12-tahtinen blues, pop I–V–vi–IV, jazz ii–V–I, 50-luku I–vi–IV–V). Jokainen sointu on päälle/pois-kytkin, ja otelauta näyttää päällä olevien sointujen arpeggiot |
 | Kierron värit | Väri kuuluu funktiolle (I aina sama väri sävellajista riippumatta). Yhteiset sävelet kaksivärisinä. Kun kaikki soinnut ovat pois päältä, otelauta palaa tavallisiin skaalaväreihin |
+| Teema | Asetuksissa Tumma / Vaalea / Puhelimen mukaan (oletus). Vain taustat, pinnat ja tekstit vaihtuvat; sävelten värit, otelauta ja kvinttiympyrä pysyvät samoina |
 | Premium | Päätetään myöhemmin, kun sovellus on pidemmällä. Ei saa estää käyttöönottoa alussa |
 | Ei tehdä | Tabieditori, biisikirjasto, videotunnit |
 
@@ -36,7 +37,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | 3 ✅ | Navigointi | Soitin → vire → valikko |
 | 3c ✅ | Muistaminen | Soitin ja vire tallentuvat, avaus suoraan valikkoon |
 | 4 ✅ | Skaalojen syventäminen | (a) ✅ nimet/asteet, (b) ✅ oikeat ♭/# -nimet sävellajin mukaan, (c) ✅ blue notes, (d) ✅ asemat: pentatonisen boksit ja 3 säveltä kielellä, (e) ✅ arpeggiot, (f) ✅ kvinttiympyrä ja sointukierrot otelaudalla |
-| 5 | Asetukset | Sävelten värit, otelaudan puulaji, tallennus |
+| 5 | Asetukset | (a) ✅ asetussivu ja teema, (b) otelaudan puulaji, (c) sävelten värit. Valinnat tallentuvat |
 | 6 | Omat skaalat | Luo, muokkaa, poista |
 | 7 | Soinnut | Triadit, inversiot, sointukirjasto otteineen (ukulele). Avoimen virityksen sointukartta (sikarilaatikko, slide) |
 | 8 | CAGED | Viisi muotoa kitaralle |

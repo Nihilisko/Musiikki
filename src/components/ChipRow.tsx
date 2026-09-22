@@ -1,4 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import type { Colors } from '../theme/colors';
+import { useThemedStyles } from '../theme/ThemeContext';
 
 type Props = {
   options: string[];
@@ -9,6 +11,7 @@ type Props = {
 
 /** A horizontally scrolling row of selectable buttons. */
 export default function ChipRow({ options, selected, onSelect }: Props) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <ScrollView
       horizontal
@@ -32,29 +35,31 @@ export default function ChipRow({ options, selected, onSelect }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: {
-    flexGrow: 0,
-  },
-  row: {
-    gap: 8,
-    paddingHorizontal: 16,
-  },
-  chip: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 18,
-    backgroundColor: '#2a2d31',
-  },
-  chipActive: {
-    backgroundColor: '#f0b429',
-  },
-  text: {
-    color: '#e8eaed',
-    fontSize: 14,
-  },
-  textActive: {
-    color: '#1a1a1a',
-    fontWeight: '700',
-  },
-});
+function makeStyles(colors: Colors) {
+  return StyleSheet.create({
+    scroll: {
+      flexGrow: 0,
+    },
+    row: {
+      gap: 8,
+      paddingHorizontal: 16,
+    },
+    chip: {
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      borderRadius: 18,
+      backgroundColor: colors.border,
+    },
+    chipActive: {
+      backgroundColor: colors.accent,
+    },
+    text: {
+      color: colors.text,
+      fontSize: 14,
+    },
+    textActive: {
+      color: colors.onAccent,
+      fontWeight: '700',
+    },
+  });
+}

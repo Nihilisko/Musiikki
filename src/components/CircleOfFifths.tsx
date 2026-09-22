@@ -3,7 +3,7 @@ import { PanResponder, StyleSheet, View } from 'react-native';
 import Svg, { Circle, ClipPath, Defs, G, Path, Text as SvgText } from 'react-native-svg';
 
 import { circleSegment, type KeyMode } from '../music/circle';
-import { colors } from '../theme/colors';
+import { darkColors } from '../theme/colors';
 
 type Props = {
   /** Position at the top of the circle: 0 = C, 1 = G ... 11 = F. */
@@ -16,6 +16,8 @@ type Props = {
 
 const SEGMENT = 30; // degrees per key (360 / 12)
 
+// The circle looks the same in both themes, like a printed cardboard disc.
+const colors = darkColors;
 const MASK = '#0c0d0f';
 const LINE = '#8a9099';
 const CELL = '#26292f';

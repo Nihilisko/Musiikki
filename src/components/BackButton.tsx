@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors } from '../theme/colors';
+import type { Colors } from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/ThemeContext';
 
 type Props = {
   /** Where the button goes, in words: "Menu", "Back"... */
@@ -14,6 +15,8 @@ type Props = {
  * If there is nothing to go back to (e.g. the app was opened on this screen), it goes to the menu.
  */
 export default function BackButton({ label }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   function goBack() {
     if (router.canGoBack()) {
       router.back();
@@ -30,30 +33,32 @@ export default function BackButton({ label }: Props) {
       accessibilityLabel={label}
       style={({ pressed }) => [styles.button, pressed && styles.pressed]}
     >
-      <Ionicons name="chevron-back" size={20} color={colors.accent} />
+      <Ionicons name="chevron-back" size={20} color={colors.accentText} />
       <Text style={styles.text}>{label}</Text>
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    paddingVertical: 6,
-    paddingLeft: 6,
-    paddingRight: 12,
-    marginHorizontal: 8,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  text: {
-    color: colors.accent,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-});
+function makeStyles(colors: Colors) {
+  return StyleSheet.create({
+    button: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 2,
+      paddingVertical: 6,
+      paddingLeft: 6,
+      paddingRight: 12,
+      marginHorizontal: 8,
+      borderRadius: 16,
+      backgroundColor: colors.surface,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+    text: {
+      color: colors.accentText,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+  });
+}

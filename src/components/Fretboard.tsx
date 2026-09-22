@@ -5,6 +5,7 @@ import { noteName, noteNameWithOctave } from '../music/notes';
 import { cellKey } from '../music/positions';
 import { pitchClass } from '../music/scales';
 import { noteColors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 export type Highlight = {
   /** Pitch class of the root note (0-11). */
@@ -75,6 +76,8 @@ export default function Fretboard({
   noteFill,
 }: Props) {
   const scrollRef = useRef<ScrollView>(null);
+  // The neck looks the same in both themes; only the text around it follows the theme.
+  const { colors } = useTheme();
 
   // When the position changes, bring it into view.
   useEffect(() => {
@@ -100,9 +103,13 @@ export default function Fretboard({
         <View style={styles.numberRow} />
         {rows.map(({ midi, index }) => (
           <View key={index} style={styles.labelCell}>
-            <Text style={styles.labelText}>{noteNameWithOctave(midi, flats)}</Text>
+            <Text style={[styles.labelText, { color: colors.text }]}>
+              {noteNameWithOctave(midi, flats)}
+            </Text>
             {index < octaveCourses && (
-              <Text style={styles.octaveText}>+{noteNameWithOctave(midi + 12, flats)}</Text>
+              <Text style={[styles.octaveText, { color: colors.textMuted }]}>
+                +{noteNameWithOctave(midi + 12, flats)}
+              </Text>
             )}
           </View>
         ))}
@@ -112,7 +119,10 @@ export default function Fretboard({
         <View>
           <View style={styles.numberRow}>
             {fretNumbers.map((fret) => (
-              <Text key={fret} style={[styles.fretNumber, { width: cellWidth(fret) }]}>
+              <Text
+                key={fret}
+                style={[styles.fretNumber, { width: cellWidth(fret), color: colors.textMuted }]}
+              >
                 {fret === 0 ? 'Open' : fret}
               </Text>
             ))}
@@ -148,9 +158,7 @@ export default function Fretboard({
                   >
                     {(!visibleCells || visibleCells.has(cellKey(index, fret))) && (
                       <View
-                        style={
-                          focusCells && !focusCells.has(cellKey(index, fret)) && styles.faded
-                        }
+                        style={focusCells && !focusCells.has(cellKey(index, fret)) && styles.faded}
                       >
                         <NoteDot
                           midi={midi + fret}
@@ -263,12 +271,10 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   labelText: {
-    color: '#f5f5f5',
     fontWeight: '600',
     fontSize: 13,
   },
   octaveText: {
-    color: '#9aa0a6',
     fontSize: 10,
   },
   numberRow: {
@@ -276,7 +282,6 @@ const styles = StyleSheet.create({
     height: 20,
   },
   fretNumber: {
-    color: '#9aa0a6',
     fontSize: 11,
     textAlign: 'center',
   },

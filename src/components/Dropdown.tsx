@@ -10,7 +10,8 @@ import {
   type LayoutRectangle,
 } from 'react-native';
 
-import { colors } from '../theme/colors';
+import type { Colors } from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/ThemeContext';
 
 type Props = {
   /** Text on the button, e.g. the current choice. */
@@ -37,6 +38,8 @@ export default function Dropdown({
   multi,
   optionColors,
 }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const [open, setOpen] = useState(false);
   const [anchor, setAnchor] = useState<LayoutRectangle | null>(null);
   const [button, setButton] = useState<View | null>(null);
@@ -62,7 +65,7 @@ export default function Dropdown({
         <Text style={styles.buttonText} numberOfLines={1}>
           {label}
         </Text>
-        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={16} color={colors.accent} />
+        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={16} color={colors.accentText} />
       </Pressable>
 
       <Modal
@@ -86,6 +89,8 @@ export default function Dropdown({
               {options.map((option, i) => {
                 const on = isOn(i);
                 const color = optionColors?.[i] ?? colors.accent;
+                // Chord colours are dark enough for white text; the yellow accent needs dark text.
+                const onText = optionColors ? '#ffffff' : colors.onAccent;
                 return (
                   <Pressable
                     key={option}
@@ -96,10 +101,14 @@ export default function Dropdown({
                       <Ionicons
                         name={on ? 'checkbox' : 'square-outline'}
                         size={18}
-                        color={on ? '#ffffff' : colors.textMuted}
+                        color={on ? onText : colors.textMuted}
                       />
                     )}
-                    <Text style={[styles.optionText, on && styles.optionTextOn]}>{option}</Text>
+                    <Text
+                      style={[styles.optionText, on && [styles.optionTextOn, { color: onText }]]}
+                    >
+                      {option}
+                    </Text>
                   </Pressable>
                 );
               })}
@@ -111,46 +120,47 @@ export default function Dropdown({
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
-    maxWidth: 200,
-  },
-  buttonText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '600',
-    flexShrink: 1,
-  },
-  list: {
-    position: 'absolute',
-    maxHeight: 260,
-    borderRadius: 12,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingVertical: 4,
-    overflow: 'hidden',
-  },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-  },
-  optionText: {
-    color: colors.text,
-    fontSize: 15,
-  },
-  optionTextOn: {
-    color: '#ffffff',
-    fontWeight: '700',
-  },
-});
+function makeStyles(colors: Colors) {
+  return StyleSheet.create({
+    button: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 16,
+      backgroundColor: colors.surface,
+      maxWidth: 200,
+    },
+    buttonText: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: '600',
+      flexShrink: 1,
+    },
+    list: {
+      position: 'absolute',
+      maxHeight: 260,
+      borderRadius: 12,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingVertical: 4,
+      overflow: 'hidden',
+    },
+    option: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+    },
+    optionText: {
+      color: colors.text,
+      fontSize: 15,
+    },
+    optionTextOn: {
+      fontWeight: '700',
+    },
+  });
+}

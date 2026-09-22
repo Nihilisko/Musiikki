@@ -3,7 +3,8 @@ import { router, type Href } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '../theme/colors';
+import type { Colors } from '../theme/colors';
+import { useTheme, useThemedStyles } from '../theme/ThemeContext';
 
 type Tile = {
   title: string;
@@ -21,11 +22,13 @@ const TILES: Tile[] = [
   { title: 'Ear training', icon: 'ear' },
   { title: 'Tuner', icon: 'pulse' },
   { title: 'Metronome', icon: 'timer' },
-  { title: 'Settings', icon: 'settings' },
+  { title: 'Settings', icon: 'settings', href: '/settings' },
 ];
 
 // The main menu, shown after an instrument and tuning have been chosen.
 export default function HomeScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   return (
     <ScrollView contentContainerStyle={styles.grid}>
       {TILES.map((tile) => {
@@ -40,7 +43,7 @@ export default function HomeScreen() {
             <Ionicons
               name={tile.icon}
               size={32}
-              color={ready ? colors.accent : colors.textMuted}
+              color={ready ? colors.accentText : colors.textMuted}
             />
             <View style={styles.tileText}>
               <Text style={[styles.title, !ready && styles.muted]}>{tile.title}</Text>
@@ -53,39 +56,41 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 16,
-    gap: 12,
-  },
-  tile: {
-    // Two tiles per row: each takes a bit under half, the gap fills the rest.
-    width: '47%',
-    flexGrow: 1,
-    aspectRatio: 1.2,
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
-    justifyContent: 'space-between',
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  tileText: {
-    gap: 2,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  muted: {
-    color: colors.textMuted,
-  },
-  soon: {
-    color: colors.textMuted,
-    fontSize: 13,
-  },
-});
+function makeStyles(colors: Colors) {
+  return StyleSheet.create({
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      padding: 16,
+      gap: 12,
+    },
+    tile: {
+      // Two tiles per row: each takes a bit under half, the gap fills the rest.
+      width: '47%',
+      flexGrow: 1,
+      aspectRatio: 1.2,
+      padding: 16,
+      borderRadius: 16,
+      backgroundColor: colors.surface,
+      justifyContent: 'space-between',
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+    tileText: {
+      gap: 2,
+    },
+    title: {
+      color: colors.text,
+      fontSize: 17,
+      fontWeight: '700',
+    },
+    muted: {
+      color: colors.textMuted,
+    },
+    soon: {
+      color: colors.textMuted,
+      fontSize: 13,
+    },
+  });
+}

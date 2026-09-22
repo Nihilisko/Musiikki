@@ -14,7 +14,8 @@ import {
 import { pitchClass, scalePitchClasses, type Scale } from '../music/scales';
 import { spellChord, spellScale } from '../music/spelling';
 import { useInstrument } from '../state/InstrumentContext';
-import { colors } from '../theme/colors';
+import type { Colors } from '../theme/colors';
+import { useThemedStyles } from '../theme/ThemeContext';
 import Dropdown from './Dropdown';
 import Fretboard, { LABEL_WIDTH, OPEN_FRET_WIDTH, type LabelMode } from './Fretboard';
 import Stepper from './Stepper';
@@ -45,6 +46,7 @@ const BACK_COLUMN = 110;
  * the fretboard shows the key's scale in the normal colours.
  */
 export default function ProgressionPractice({ index, mode, back, title }: Props) {
+  const styles = useThemedStyles(makeStyles);
   const { instrument, tuning } = useInstrument();
   const { width } = useWindowDimensions();
   const [progressionOption, setProgressionOption] = useState(0); // 0 = none
@@ -65,9 +67,7 @@ export default function ProgressionPractice({ index, mode, back, title }: Props)
   }
   function toggleChord(i: number) {
     setEnabled((current) =>
-      current.includes(i)
-        ? current.filter((x) => x !== i)
-        : [...current, i].sort((a, b) => a - b),
+      current.includes(i) ? current.filter((x) => x !== i) : [...current, i].sort((a, b) => a - b),
     );
   }
 
@@ -175,11 +175,7 @@ function chordFills(chords: KeyChord[]): (string[] | undefined)[] {
 }
 
 /** Note names: the key's spelling, plus each chord's own spelling for notes outside the key. */
-function chordNoteNames(
-  tonic: number,
-  scale: Scale,
-  chords: KeyChord[],
-): (string | undefined)[] {
+function chordNoteNames(tonic: number, scale: Scale, chords: KeyChord[]): (string | undefined)[] {
   const names = [...spellScale(tonic, scale).names];
   for (const chord of chords) {
     spellChord(chord.root, chord.type).names.forEach((name, pc) => {
@@ -200,41 +196,43 @@ function fretWindow(area: { fret: number }[], stringCount: number): Set<string> 
   return cells;
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  bar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SIDE_PADDING,
-    paddingVertical: 8,
-  },
-  backColumn: {
-    width: BACK_COLUMN,
-  },
-  centreScroll: {
-    flex: 1,
-  },
-  centre: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-  },
-  title: {
-    color: colors.text,
-    fontWeight: '700',
-  },
-  stage: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 8,
-  },
-  status: {
-    color: colors.textMuted,
-    fontSize: 14,
-    marginTop: 8,
-  },
-});
+function makeStyles(colors: Colors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    bar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: SIDE_PADDING,
+      paddingVertical: 8,
+    },
+    backColumn: {
+      width: BACK_COLUMN,
+    },
+    centreScroll: {
+      flex: 1,
+    },
+    centre: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 8,
+    },
+    title: {
+      color: colors.text,
+      fontWeight: '700',
+    },
+    stage: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingBottom: 8,
+    },
+    status: {
+      color: colors.textMuted,
+      fontSize: 14,
+      marginTop: 8,
+    },
+  });
+}
