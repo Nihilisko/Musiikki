@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Musiikki",
+    "name": "StringSense",
     "slug": "musiikki",
     "version": "1.0.0",
     "orientation": "default",
@@ -11,7 +11,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#D42330",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
