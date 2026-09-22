@@ -4,6 +4,7 @@
 // The degree number tells which letter a note gets (degree 4 of F = the 4th letter from F = B),
 // and the accidental (♯/♭) makes the letter match the actual pitch.
 
+import type { ChordType } from './chords';
 import { degreeName } from './degrees';
 import { noteName } from './notes';
 import { pitchClass, SCALES, type Scale } from './scales';
@@ -38,8 +39,12 @@ function rootSpellings(pc: number): Spelling[] {
 }
 
 /** The number part of a degree name: "♭3" -> 3. */
+function numberOf(degree: string): number {
+  return Number(degree.replace(/[♭♯]/g, ''));
+}
+
 function degreeNumber(interval: number, scale?: Scale): number {
-  return Number(degreeName(interval, scale).replace(/[♭♯]/g, ''));
+  return numberOf(degreeName(interval, scale));
 }
 
 export type SpelledScale = {
@@ -66,15 +71,44 @@ export function spellScale(root: number, scale?: Scale, extraIntervals: number[]
       names: Array.from({ length: 12 }, (_, pc) => noteName(pc, flats)),
     };
   }
-  const intervals = scale.intervals;
+  const { rootSpelling, result } = spellDegrees(
+    root,
+    scale.intervals.map((interval) => ({ interval, degree: degreeNumber(interval, scale) })),
+  );
+  for (const interval of extraIntervals) {
+    const pc = pitchClass(root + interval);
+    if (result.names[pc] === undefined) {
+      const letter = (rootSpelling.letter + degreeNumber(interval) - 1) % 7;
+      result.names[pc] = format({ letter, accidental: accidentalFor(pc, letter) });
+    }
+  }
+  return result;
+}
 
+/** Names the notes of a chord, e.g. C°7 -> C E♭ G♭ B♭♭. */
+export function spellChord(root: number, chord: ChordType): SpelledScale {
+  return spellDegrees(
+    root,
+    chord.tones.map((tone) => ({ interval: tone.interval, degree: numberOf(tone.degree) })),
+  ).result;
+}
+
+/**
+ * The core: names notes given as (interval, degree number) pairs.
+ * The degree number decides the letter; the accidental makes it match the pitch.
+ * Tries each way of writing the root and keeps the one with the fewest ♯/♭.
+ */
+function spellDegrees(
+  root: number,
+  notes: { interval: number; degree: number }[],
+): { rootSpelling: Spelling; result: SpelledScale } {
   let best: { score: number; rootSpelling: Spelling; result: SpelledScale } | undefined;
   for (const rootSpelling of rootSpellings(root)) {
     const names: (string | undefined)[] = new Array(12).fill(undefined);
     let score = 0;
-    for (const interval of intervals) {
+    for (const { interval, degree } of notes) {
       const pc = pitchClass(root + interval);
-      const letter = (rootSpelling.letter + degreeNumber(interval, scale) - 1) % 7;
+      const letter = (rootSpelling.letter + degree - 1) % 7;
       const accidental = accidentalFor(pc, letter);
       names[pc] = format({ letter, accidental });
       // Every ♯/♭ costs a point; double ♯♯/♭♭ are hard to read, so they cost much more.
@@ -84,14 +118,5 @@ export function spellScale(root: number, scale?: Scale, extraIntervals: number[]
       best = { score, rootSpelling, result: { rootName: format(rootSpelling), names } };
     }
   }
-
-  const { rootSpelling, result } = best!;
-  for (const interval of extraIntervals) {
-    const pc = pitchClass(root + interval);
-    if (result.names[pc] === undefined) {
-      const letter = (rootSpelling.letter + degreeNumber(interval) - 1) % 7;
-      result.names[pc] = format({ letter, accidental: accidentalFor(pc, letter) });
-    }
-  }
-  return result;
+  return best!;
 }

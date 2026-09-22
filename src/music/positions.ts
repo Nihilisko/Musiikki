@@ -90,3 +90,28 @@ export function scalePosition(
 
   return cells;
 }
+
+/**
+ * One arpeggio position: the chord tones inside a 5-fret window.
+ * Position `index` starts from the chord's `index`-th tone on the lowest string,
+ * one fret below it so shapes that reach back a fret still fit.
+ */
+export function arpeggioPosition(
+  strings: number[],
+  root: number,
+  intervals: number[],
+  index: number,
+): Cell[] {
+  const pitchClasses = intervals.map((i) => pitchClass(root + i));
+  const start = pitchClass(root + intervals[index] - strings[0]);
+  const from = Math.max(0, start - 1);
+  const cells: Cell[] = [];
+  strings.forEach((open, string) => {
+    for (let fret = from; fret <= start + 3; fret++) {
+      if (pitchClasses.includes(pitchClass(open + fret))) {
+        cells.push({ string, fret });
+      }
+    }
+  });
+  return cells;
+}

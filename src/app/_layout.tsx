@@ -31,7 +31,7 @@ export default function RootLayout() {
             name="home"
             options={{ title: '', headerLeft: () => <InstrumentButton /> }}
           />
-          <Stack.Screen name="scales" options={{ title: 'Scales & modes' }} />
+          <Stack.Screen name="scales" options={{ title: 'Scales & arpeggios' }} />
         </Stack>
       </InstrumentProvider>
     </ThemeProvider>

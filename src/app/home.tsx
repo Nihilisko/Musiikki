@@ -13,7 +13,7 @@ type Tile = {
 };
 
 const TILES: Tile[] = [
-  { title: 'Scales & modes', icon: 'git-network', href: '/scales' },
+  { title: 'Scales & arpeggios', icon: 'git-network', href: '/scales' },
   { title: 'Chords & triads', icon: 'layers' },
   { title: 'CAGED', icon: 'grid' },
   { title: 'Theory', icon: 'book' },
