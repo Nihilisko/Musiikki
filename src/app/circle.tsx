@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import ChipRow from '../components/ChipRow';
 import CircleOfFifths from '../components/CircleOfFifths';
-import ProgressionPractice from '../components/ProgressionPractice';
 import { diatonicChords, keyName, type KeyMode } from '../music/circle';
 import { useLockedKey } from '../state/KeyContext';
 import { colors } from '../theme/colors';
@@ -14,7 +14,7 @@ const MODE_OPTIONS = ['Major', 'Minor'];
 
 export default function CircleScreen() {
   const { lockedKey, loaded, lockKey } = useLockedKey();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const [index, setIndex] = useState(0);
   const [mode, setMode] = useState<KeyMode>('major');
 
@@ -28,7 +28,14 @@ export default function CircleScreen() {
 
   const chords = diatonicChords(index, mode);
   const isLocked = lockedKey?.index === index && lockedKey?.mode === mode;
-  const size = Math.min(width - 32, 380);
+  // Fit the circle so everything down to the lock button shows without scrolling:
+  // the other parts of the screen take about 360 pixels (header, buttons, chord row).
+  const size = Math.max(220, Math.min(width - 32, height - 360, 380));
+
+  function lockAndPractise() {
+    lockKey({ index, mode });
+    router.push('/progression');
+  }
 
   function step(by: number) {
     setIndex((current) => (((current + by) % 12) + 12) % 12);
@@ -61,9 +68,7 @@ export default function CircleScreen() {
           <Ionicons name="chevron-forward" size={26} color={colors.text} />
         </Pressable>
       </View>
-      <Text style={styles.hint}>
-        Turn the circle or use the arrows. Tap the Major or Minor side to switch.
-      </Text>
+      <Text style={styles.hint}>Turn the circle. Tap the Major or Minor side to switch.</Text>
 
       <ScrollView
         horizontal
@@ -78,44 +83,35 @@ export default function CircleScreen() {
         ))}
       </ScrollView>
 
-      <Pressable
-        onPress={() => lockKey({ index, mode })}
-        disabled={isLocked}
-        style={[styles.lock, isLocked && styles.locked]}
-      >
-        <Ionicons
-          name={isLocked ? 'lock-closed' : 'lock-open'}
-          size={18}
-          color={isLocked ? colors.accent : '#1a1a1a'}
-        />
-        <Text style={[styles.lockText, isLocked && styles.lockedText]}>
-          {isLocked ? `${keyName(index, mode)} locked` : `Lock ${keyName(index, mode)}`}
+      <Pressable onPress={lockAndPractise} style={styles.lock}>
+        <Ionicons name={isLocked ? 'lock-closed' : 'lock-open'} size={18} color="#1a1a1a" />
+        <Text style={styles.lockText}>
+          {isLocked ? `Practise ${keyName(index, mode)}` : `Lock ${keyName(index, mode)}`}
         </Text>
+        <Ionicons name="chevron-up" size={18} color="#1a1a1a" />
       </Pressable>
       {lockedKey && !isLocked && (
         <Text style={styles.hint}>Locked now: {keyName(lockedKey.index, lockedKey.mode)}</Text>
       )}
-
-      <ProgressionPractice index={index} mode={mode} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   content: {
-    paddingTop: 16,
-    paddingBottom: 40,
+    paddingTop: 12,
+    paddingBottom: 32,
   },
   wheel: {
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 12,
   },
   keyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,
-    marginTop: 16,
+    marginTop: 12,
   },
   arrow: {
     padding: 6,
@@ -139,7 +135,7 @@ const styles = StyleSheet.create({
   chords: {
     gap: 8,
     paddingHorizontal: 16,
-    marginTop: 20,
+    marginTop: 14,
   },
   chord: {
     alignItems: 'center',
@@ -165,21 +161,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginTop: 24,
+    marginTop: 16,
     marginHorizontal: 16,
     paddingVertical: 14,
     borderRadius: 12,
     backgroundColor: colors.accent,
   },
-  locked: {
-    backgroundColor: colors.surface,
-  },
   lockText: {
     color: '#1a1a1a',
     fontSize: 16,
     fontWeight: '700',
-  },
-  lockedText: {
-    color: colors.accent,
   },
 });

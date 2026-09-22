@@ -55,6 +55,15 @@ export default function RootLayout() {
               name="circle"
               options={{ title: 'Circle of fifths', headerLeft: () => <BackButton label="Menu" /> }}
             />
+            <Stack.Screen
+              name="progression"
+              options={{
+                headerShown: false,
+                // Slides up over the circle; pulling its handle down slides it away again.
+                presentation: 'modal',
+                animation: 'slide_from_bottom',
+              }}
+            />
           </Stack>
         </KeyProvider>
       </InstrumentProvider>
