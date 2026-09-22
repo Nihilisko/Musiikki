@@ -16,6 +16,7 @@ Nämä tiedostot selittävät sovelluksen koodin vaihe vaiheelta. Jokaisessa luv
 | 2 | [Skaalat ja moodit](02-skaalat.md) | Intervallit, jakojäännös, valinnaiset propsit, taulukkometodit |
 | 3 | [Navigointi ja yhteinen tila](03-navigointi.md) | Expo Router, navigointipino, Context |
 | 4 | [Valintojen tallentaminen](04-tallennus.md) | AsyncStorage, async/await, useEffect, lataustila |
+| 5 | [Teoriamoottori](05-teoriamoottori.md) | Asteet, oikeat nimet, asemat, arpeggiot, kvinttiympyrä, SVG, refaktorointi |
 
 ## Sovelluksen ajaminen
 
