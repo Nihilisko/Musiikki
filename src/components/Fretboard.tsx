@@ -2,6 +2,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { noteName, noteNameWithOctave } from '../music/notes';
 import { pitchClass } from '../music/scales';
+import { noteColors } from '../theme/colors';
 
 export type Highlight = {
   /** Pitch class of the root note (0-11). */
@@ -28,6 +29,8 @@ type Props = {
   noteNames?: (string | undefined)[];
   /** Write string names and unnamed notes with flats instead of sharps. */
   flats?: boolean;
+  /** Pitch classes of blue notes: always shown, in blue, even outside the scale. */
+  blueNotes?: number[];
 };
 
 const FRET_WIDTH = 46;
@@ -45,6 +48,7 @@ export default function Fretboard({
   degreeLabels,
   noteNames,
   flats = false,
+  blueNotes = [],
 }: Props) {
   // Without degree names there is nothing else to show, so fall back to note names.
   const mode = degreeLabels ? labelMode : 'names';
@@ -112,6 +116,7 @@ export default function Fretboard({
                       mode={mode}
                       degreeLabels={degreeLabels}
                       name={noteNames?.[pitchClass(midi + fret)] ?? noteName(midi + fret, flats)}
+                      blueNotes={blueNotes}
                     />
                   </View>
                 ))}
@@ -127,22 +132,32 @@ export default function Fretboard({
 type NoteDotProps = {
   midi: number;
   name: string;
+  blueNotes: number[];
   highlight?: Highlight;
   mode: LabelMode;
   degreeLabels?: string[];
 };
 
-function NoteDot({ midi, name, highlight, mode, degreeLabels }: NoteDotProps) {
+function NoteDot({ midi, name, highlight, mode, degreeLabels, blueNotes }: NoteDotProps) {
   const pc = pitchClass(midi);
-  if (highlight && !highlight.pitchClasses.includes(pc)) {
+  const isBlue = blueNotes.includes(pc);
+  if (highlight && !highlight.pitchClasses.includes(pc) && !isBlue) {
     return null; // not in the scale: leave the fret empty
   }
   const isRoot = highlight?.root === pc;
+  // The root keeps its colour; otherwise blue notes win over the scale colour.
+  const role = isRoot
+    ? noteColors.root
+    : isBlue
+      ? noteColors.blue
+      : highlight
+        ? noteColors.scale
+        : noteColors.plain;
   const degree = degreeLabels?.[pc] ?? '';
-  const textStyle = [styles.noteText, isRoot && styles.rootText];
+  const textStyle = [styles.noteText, { color: role.text }];
 
   return (
-    <View style={[styles.note, highlight && styles.scaleNote, isRoot && styles.rootNote]}>
+    <View style={[styles.note, { backgroundColor: role.background }, highlight && styles.outlined]}>
       {mode === 'names' && <Text style={textStyle}>{name}</Text>}
       {mode === 'degrees' && <Text style={textStyle}>{degree}</Text>}
       {mode === 'both' && (
@@ -239,15 +254,13 @@ const styles = StyleSheet.create({
     height: 30,
     borderRadius: 15,
     paddingHorizontal: 3,
-    backgroundColor: '#1e1e1e',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scaleNote: {
-    backgroundColor: '#2f6fb0',
-  },
-  rootNote: {
-    backgroundColor: '#f0b429',
+  outlined: {
+    // A thin light edge keeps dark notes visible on dark wood.
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
   },
   noteText: {
     color: '#ffffff',
@@ -262,8 +275,5 @@ const styles = StyleSheet.create({
     fontSize: 8,
     lineHeight: 9,
     fontWeight: '400',
-  },
-  rootText: {
-    color: '#1a1a1a',
   },
 });

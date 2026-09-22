@@ -2,7 +2,8 @@ import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
 type Props = {
   options: string[];
-  selected: number;
+  /** One selected index, or a list when several can be on at once. */
+  selected: number | number[];
   onSelect: (index: number) => void;
 };
 
@@ -16,7 +17,7 @@ export default function ChipRow({ options, selected, onSelect }: Props) {
       contentContainerStyle={styles.row}
     >
       {options.map((label, index) => {
-        const active = index === selected;
+        const active = Array.isArray(selected) ? selected.includes(index) : index === selected;
         return (
           <Pressable
             key={label}

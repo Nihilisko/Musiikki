@@ -52,8 +52,10 @@ export type SpelledScale = {
 /**
  * Names the notes of a scale. Without a scale, names all 12 notes around the root.
  * When the root can be written two ways (C♯/D♭), picks the one with fewer ♯/♭.
+ * `extraIntervals` are notes outside the scale that also need names (e.g. blue notes);
+ * they are named by their usual degree (♭3, ♭5...) but don't affect the choice of root.
  */
-export function spellScale(root: number, scale?: Scale): SpelledScale {
+export function spellScale(root: number, scale?: Scale, extraIntervals: number[] = []): SpelledScale {
   if (!scale) {
     // No scale: the letter rule doesn't apply, so give every note its simplest name,
     // using flats in flat keys (E♭, B♭...) and sharps otherwise.
@@ -66,7 +68,7 @@ export function spellScale(root: number, scale?: Scale): SpelledScale {
   }
   const intervals = scale.intervals;
 
-  let best: { score: number; result: SpelledScale } | undefined;
+  let best: { score: number; rootSpelling: Spelling; result: SpelledScale } | undefined;
   for (const rootSpelling of rootSpellings(root)) {
     const names: (string | undefined)[] = new Array(12).fill(undefined);
     let score = 0;
@@ -79,8 +81,17 @@ export function spellScale(root: number, scale?: Scale): SpelledScale {
       score += Math.abs(accidental) + (Math.abs(accidental) > 1 ? 10 : 0);
     }
     if (!best || score < best.score) {
-      best = { score, result: { rootName: format(rootSpelling), names } };
+      best = { score, rootSpelling, result: { rootName: format(rootSpelling), names } };
     }
   }
-  return best!.result;
+
+  const { rootSpelling, result } = best!;
+  for (const interval of extraIntervals) {
+    const pc = pitchClass(root + interval);
+    if (result.names[pc] === undefined) {
+      const letter = (rootSpelling.letter + degreeNumber(interval) - 1) % 7;
+      result.names[pc] = format({ letter, accidental: accidentalFor(pc, letter) });
+    }
+  }
+  return result;
 }
