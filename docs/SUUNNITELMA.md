@@ -16,7 +16,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | Sävelten merkinnät | Nimet (C, D, E), asteet (1, ♭3, 5) tai molemmat |
 | Blue notes | Käyttäjä valitsee, mitkä näytetään: ♭3, ♭5, ♭7. Väri sininen |
 | Sävelten värit | Roolin mukaan (pohjasävel, skaalan sävelet, blue notes), valmiista paletista. Oletukset: pohjasävel punainen, skaalan sävelet vihreä, blue notes sininen |
-| Otelaudan puulajit | Ruusupuu, vaahtera, paahdettu vaahtera, pau ferro, valkoinen |
+| Otelaudan puulajit | Ruusupuu (oletus), vaahtera, paahdettu vaahtera, pau ferro, valkoinen. Hienovarainen koodilla piirretty syykuvio, ei kuvatiedostoja. Yksi valinta koko sovellukselle (asetuksissa näytepaloin). Merkkipisteet helmiäistä tummilla puilla ja mustia vaaleilla |
 | Omat skaalat | Luo, muokkaa, poista |
 | Kvinttiympyrä | Oma sivunsa valikossa. Ulkokiekko pyörii, sisämaski (Major/Minor, I–vii°) pysyy paikallaan, kuten fyysisessä kvinttiympyrässä. Valittu sävellaji lukitaan ja muistetaan |
 | Harjoitusnäkymä | Lock-nappi lukitsee sävellajin ja avaa harjoitusnäkymän, joka kääntyy automaattisesti vaakaan (ja takaisin pystyyn, kun palataan). Koko kaula mahtuu leveydelle. Yläreunassa yksi rivi: ‹ Circle -nappi, kierto-, sointu- ja merkintävalikot sekä asemalaskuri − 0 + (0 = koko kaula). Valittu asema kirkkaana, muu kaula himmeänä |
@@ -42,7 +42,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | 3 ✅ | Navigointi | Soitin → vire → valikko |
 | 3c ✅ | Muistaminen | Soitin ja vire tallentuvat, avaus suoraan valikkoon |
 | 4 ✅ | Skaalojen syventäminen | (a) ✅ nimet/asteet, (b) ✅ oikeat ♭/# -nimet sävellajin mukaan, (c) ✅ blue notes, (d) ✅ asemat: pentatonisen boksit ja 3 säveltä kielellä, (e) ✅ arpeggiot, (f) ✅ kvinttiympyrä ja sointukierrot otelaudalla |
-| 5 | Asetukset | (a) ✅ asetussivu ja teema, (brändi) ✅ nimi, logo ja sovelluskuvake (käynnistyskuva ja brändivärit koodiin myöhemmin), (b) otelaudan puulaji, (c) sävelten värit. Valinnat tallentuvat |
+| 5 | Asetukset | (a) ✅ asetussivu ja teema, (brändi) ✅ nimi, logo ja sovelluskuvake (käynnistyskuva ja brändivärit koodiin myöhemmin), (b) ✅ otelaudan puulaji, (c) sävelten värit. Valinnat tallentuvat |
 | 6 | Omat skaalat | Luo, muokkaa, poista |
 | 7 | Soinnut | Triadit, inversiot, sointukirjasto otteineen (ukulele). Avoimen virityksen sointukartta (sikarilaatikko, slide) |
 | 8 | CAGED | Viisi muotoa kitaralle |
