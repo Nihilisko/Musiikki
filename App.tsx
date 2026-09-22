@@ -1,25 +1,26 @@
 import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import ChipRow from './src/components/ChipRow';
 import Fretboard from './src/components/Fretboard';
 import { INSTRUMENTS } from './src/music/instruments';
-import { noteName } from './src/music/notes';
-import { MAJOR, scalePitchClasses } from './src/music/scales';
+import { NOTE_NAMES, noteName } from './src/music/notes';
+import { SCALES, scalePitchClasses } from './src/music/scales';
 
-const C = 0; // pitch class of C
-const VIEWS = ['All notes', 'C Major scale'];
+// First option shows every note; the rest are the scales.
+const SCALE_OPTIONS = ['All notes', ...SCALES.map((s) => s.name)];
 
 export default function App() {
   const [instrumentIndex, setInstrumentIndex] = useState(0);
   const [tuningIndex, setTuningIndex] = useState(0);
-  const [viewIndex, setViewIndex] = useState(0);
+  const [root, setRoot] = useState(0); // pitch class, 0 = C
+  const [scaleOption, setScaleOption] = useState(0);
 
   const instrument = INSTRUMENTS[instrumentIndex];
   const tuning = instrument.tunings[tuningIndex];
-  const highlight =
-    viewIndex === 1 ? { root: C, pitchClasses: scalePitchClasses(C, MAJOR) } : undefined;
+  const scale = scaleOption > 0 ? SCALES[scaleOption - 1] : undefined;
+  const highlight = scale ? { root, pitchClasses: scalePitchClasses(root, scale) } : undefined;
 
   function selectInstrument(index: number) {
     setInstrumentIndex(index);
@@ -27,7 +28,7 @@ export default function App() {
   }
 
   return (
-    <View style={styles.screen}>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <StatusBar style="light" />
       <Text style={styles.title}>Fretboard</Text>
 
@@ -45,8 +46,11 @@ export default function App() {
         onSelect={setTuningIndex}
       />
 
-      <Text style={styles.sectionLabel}>Show</Text>
-      <ChipRow options={VIEWS} selected={viewIndex} onSelect={setViewIndex} />
+      <Text style={styles.sectionLabel}>Key</Text>
+      <ChipRow options={NOTE_NAMES} selected={root} onSelect={setRoot} />
+
+      <Text style={styles.sectionLabel}>Scale</Text>
+      <ChipRow options={SCALE_OPTIONS} selected={scaleOption} onSelect={setScaleOption} />
 
       <Text style={styles.tuningNotes}>{tuning.strings.map(noteName).join(' ')}</Text>
 
@@ -58,7 +62,7 @@ export default function App() {
           highlight={highlight}
         />
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -66,7 +70,10 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#141518',
+  },
+  content: {
     paddingTop: 48,
+    paddingBottom: 32,
   },
   title: {
     color: '#ffffff',
