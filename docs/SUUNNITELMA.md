@@ -15,7 +15,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | Kirjautuminen | Ei vielä. Lisätään, kun tulee premium tai synkronointi |
 | Sävelten merkinnät | Nimet (C, D, E), asteet (1, ♭3, 5) tai molemmat |
 | Blue notes | Käyttäjä valitsee, mitkä näytetään: ♭3, ♭5, ♭7. Väri sininen |
-| Sävelten värit | Roolin mukaan (pohjasävel, skaalan sävelet, blue notes), valmiista paletista |
+| Sävelten värit | Roolin mukaan (pohjasävel, skaalan sävelet, blue notes), valmiista paletista. Oletukset: pohjasävel punainen, skaalan sävelet vihreä, blue notes sininen |
 | Otelaudan puulajit | Ruusupuu, vaahtera, paahdettu vaahtera, pau ferro, valkoinen |
 | Omat skaalat | Luo, muokkaa, poista |
 | Kvinttiympyrä | Oma sivunsa valikossa. Ulkokiekko pyörii, sisämaski (Major/Minor, I–vii°) pysyy paikallaan, kuten fyysisessä kvinttiympyrässä. Valittu sävellaji lukitaan ja muistetaan |

@@ -12,7 +12,7 @@ export const colors = {
 export const noteColors = {
   /** Notes when no scale is chosen. */
   plain: { background: '#1e1e1e', text: '#ffffff' },
-  root: { background: '#f0b429', text: '#1a1a1a' },
-  scale: { background: '#111111', text: '#ffffff' },
+  root: { background: '#d93a3a', text: '#ffffff' },
+  scale: { background: '#2e9d57', text: '#ffffff' },
   blue: { background: '#1e7be0', text: '#ffffff' },
 };
