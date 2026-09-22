@@ -6,13 +6,20 @@ import ChipRow from './src/components/ChipRow';
 import Fretboard from './src/components/Fretboard';
 import { INSTRUMENTS } from './src/music/instruments';
 import { noteName } from './src/music/notes';
+import { MAJOR, scalePitchClasses } from './src/music/scales';
+
+const C = 0; // pitch class of C
+const VIEWS = ['All notes', 'C Major scale'];
 
 export default function App() {
   const [instrumentIndex, setInstrumentIndex] = useState(0);
   const [tuningIndex, setTuningIndex] = useState(0);
+  const [viewIndex, setViewIndex] = useState(0);
 
   const instrument = INSTRUMENTS[instrumentIndex];
   const tuning = instrument.tunings[tuningIndex];
+  const highlight =
+    viewIndex === 1 ? { root: C, pitchClasses: scalePitchClasses(C, MAJOR) } : undefined;
 
   function selectInstrument(index: number) {
     setInstrumentIndex(index);
@@ -38,6 +45,9 @@ export default function App() {
         onSelect={setTuningIndex}
       />
 
+      <Text style={styles.sectionLabel}>Show</Text>
+      <ChipRow options={VIEWS} selected={viewIndex} onSelect={setViewIndex} />
+
       <Text style={styles.tuningNotes}>{tuning.strings.map(noteName).join(' ')}</Text>
 
       <View style={styles.fretboard}>
@@ -45,6 +55,7 @@ export default function App() {
           strings={tuning.strings}
           frets={instrument.frets}
           octaveCourses={instrument.octaveCourses}
+          highlight={highlight}
         />
       </View>
     </View>

@@ -1,6 +1,14 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { noteName, noteNameWithOctave } from '../music/notes';
+import { pitchClass } from '../music/scales';
+
+export type Highlight = {
+  /** Pitch class of the root note (0-11). */
+  root: number;
+  /** Pitch classes to show; all other notes are hidden. */
+  pitchClasses: number[];
+};
 
 type Props = {
   /** Strings from lowest to highest, as MIDI numbers. */
@@ -8,6 +16,8 @@ type Props = {
   frets: number;
   /** 12-string: how many of the lowest courses have an octave string. */
   octaveCourses?: number;
+  /** When given, only these notes are shown and the root is marked. */
+  highlight?: Highlight;
 };
 
 const FRET_WIDTH = 46;
@@ -16,7 +26,7 @@ const STRING_HEIGHT = 36;
 const SINGLE_DOTS = [3, 5, 7, 9, 15, 17, 19, 21];
 const DOUBLE_DOTS = [12, 24];
 
-export default function Fretboard({ strings, frets, octaveCourses = 0 }: Props) {
+export default function Fretboard({ strings, frets, octaveCourses = 0, highlight }: Props) {
   const fretNumbers = Array.from({ length: frets + 1 }, (_, i) => i);
   // Highest string on top, like in tabs.
   const rows = strings.map((midi, index) => ({ midi, index })).reverse();
@@ -74,9 +84,8 @@ export default function Fretboard({ strings, frets, octaveCourses = 0 }: Props) 
                       fret === 0 ? styles.openCell : styles.fretCell,
                     ]}
                   >
-                    <View style={styles.note}>
-                      <Text style={styles.noteText}>{noteName(midi + fret)}</Text>
-                    </View>
+                    <NoteDot midi={midi + fret} highlight={highlight} />
+
                   </View>
                 ))}
               </View>
@@ -84,6 +93,19 @@ export default function Fretboard({ strings, frets, octaveCourses = 0 }: Props) 
           </View>
         </View>
       </ScrollView>
+    </View>
+  );
+}
+
+function NoteDot({ midi, highlight }: { midi: number; highlight?: Highlight }) {
+  const pc = pitchClass(midi);
+  if (highlight && !highlight.pitchClasses.includes(pc)) {
+    return null; // not in the scale: leave the fret empty
+  }
+  const isRoot = highlight?.root === pc;
+  return (
+    <View style={[styles.note, highlight && styles.scaleNote, isRoot && styles.rootNote]}>
+      <Text style={[styles.noteText, isRoot && styles.rootText]}>{noteName(midi)}</Text>
     </View>
   );
 }
@@ -176,9 +198,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  scaleNote: {
+    backgroundColor: '#2f6fb0',
+  },
+  rootNote: {
+    backgroundColor: '#f0b429',
+  },
   noteText: {
     color: '#ffffff',
     fontSize: 11,
     fontWeight: '600',
+  },
+  rootText: {
+    color: '#1a1a1a',
   },
 });
