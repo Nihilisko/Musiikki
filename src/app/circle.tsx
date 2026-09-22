@@ -43,7 +43,13 @@ export default function CircleScreen() {
       />
 
       <View style={styles.wheel}>
-        <CircleOfFifths index={index} mode={mode} onChange={setIndex} size={size} />
+        <CircleOfFifths
+          index={index}
+          mode={mode}
+          onChange={setIndex}
+          onModeChange={setMode}
+          size={size}
+        />
       </View>
 
       <View style={styles.keyRow}>
@@ -55,9 +61,15 @@ export default function CircleScreen() {
           <Ionicons name="chevron-forward" size={26} color={colors.text} />
         </Pressable>
       </View>
-      <Text style={styles.hint}>Turn the circle, tap a key, or use the arrows.</Text>
+      <Text style={styles.hint}>
+        Turn the circle or use the arrows. Tap the Major or Minor side to switch.
+      </Text>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chords}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.chords}
+      >
         {chords.map((chord) => (
           <View key={chord.numeral} style={styles.chord}>
             <Text style={styles.numeral}>{chord.numeral}</Text>
