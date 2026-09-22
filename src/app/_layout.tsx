@@ -68,8 +68,8 @@ function AppStack() {
         <Stack.Screen
           name="scales"
           options={{
-            title: 'Scales & arpeggios',
-            headerLeft: () => <BackButton label="Menu" />,
+            headerShown: false, // the screen turns sideways and has its own Menu button
+            animation: 'slide_from_bottom',
           }}
         />
         <Stack.Screen

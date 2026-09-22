@@ -1,11 +1,10 @@
-import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import BackButton from '../components/BackButton';
 import ProgressionPractice from '../components/ProgressionPractice';
 import { keyName } from '../music/circle';
 import { useLockedKey } from '../state/KeyContext';
-import { lockLandscape, lockPortrait } from '../state/orientation';
+import { useLandscape } from '../state/orientation';
 import type { Colors } from '../theme/colors';
 import { useThemedStyles } from '../theme/ThemeContext';
 
@@ -14,11 +13,7 @@ export default function ProgressionScreen() {
   const styles = useThemedStyles(makeStyles);
   const { lockedKey } = useLockedKey();
 
-  // Sideways while this screen is open, upright again when leaving.
-  useEffect(() => {
-    lockLandscape();
-    return lockPortrait;
-  }, []);
+  useLandscape(); // sideways while this screen is open
 
   if (!lockedKey) {
     return (
@@ -46,7 +41,6 @@ function makeStyles(colors: Colors) {
     screen: {
       flex: 1,
       backgroundColor: colors.background,
-      paddingTop: 8,
     },
     empty: {
       flex: 1,

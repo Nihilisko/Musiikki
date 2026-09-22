@@ -22,6 +22,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | Harjoitusnäkymä | Lock-nappi lukitsee sävellajin ja avaa harjoitusnäkymän, joka kääntyy automaattisesti vaakaan (ja takaisin pystyyn, kun palataan). Koko kaula mahtuu leveydelle. Yläreunassa yksi rivi: ‹ Circle -nappi, kierto-, sointu- ja merkintävalikot sekä asemalaskuri − 0 + (0 = koko kaula). Valittu asema kirkkaana, muu kaula himmeänä |
 | Sointukierrot | Kvinttiympyrästä valitaan kierto (12-tahtinen blues, pop I–V–vi–IV, jazz ii–V–I, 50-luku I–vi–IV–V). Jokainen sointu on päälle/pois-kytkin, ja otelauta näyttää päällä olevien sointujen arpeggiot |
 | Kierron värit | Väri kuuluu funktiolle (I aina sama väri sävellajista riippumatta). Yhteiset sävelet kaksivärisinä. Kun kaikki soinnut ovat pois päältä, otelauta palaa tavallisiin skaalaväreihin |
+| Otelautasivut | Kaikki otelautasivut (skaalat ja harjoitusnäkymä) ovat vaakatasossa samalla asettelulla: paluunappi vasemmalla, pudotusvalikot keskellä, koko kaula näkyvissä, asemalaskuri − 0 + (valittu asema kirkkaana, muu kaula himmeänä). Sävellaji valitaan napauttamalla ympyrästä (12 säveltä kvinttijärjestyksessä) |
 | Teema | Asetuksissa Tumma / Vaalea / Puhelimen mukaan (oletus). Vain taustat, pinnat ja tekstit vaihtuvat; sävelten värit, otelauta ja kvinttiympyrä pysyvät samoina |
 | Premium | Päätetään myöhemmin, kun sovellus on pidemmällä. Ei saa estää käyttöönottoa alussa |
 | Ei tehdä | Tabieditori, biisikirjasto, videotunnit |

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 
 import type { KeyMode } from '../music/circle';
 import { degreeLabels } from '../music/degrees';
@@ -17,7 +17,8 @@ import { useInstrument } from '../state/InstrumentContext';
 import type { Colors } from '../theme/colors';
 import { useThemedStyles } from '../theme/ThemeContext';
 import Dropdown from './Dropdown';
-import Fretboard, { LABEL_WIDTH, OPEN_FRET_WIDTH, type LabelMode } from './Fretboard';
+import type { LabelMode } from './Fretboard';
+import FretboardStage from './FretboardStage';
 import Stepper from './Stepper';
 
 type Props = {
@@ -34,11 +35,6 @@ const LABEL_MODES: LabelMode[] = ['names', 'degrees', 'both'];
 const LABEL_OPTIONS = ['Names', 'Degrees', 'Both'];
 const POSITIONS = 7;
 
-/** Side padding around the fretboard. */
-const SIDE_PADDING = 16;
-/** Width the back button's column keeps at each side, so the centre stays centred. */
-const BACK_COLUMN = 110;
-
 /**
  * Pick a progression and see its chords' arpeggios on the whole neck.
  * One row of compact controls on top; the fretboard fills the width below.
@@ -47,8 +43,7 @@ const BACK_COLUMN = 110;
  */
 export default function ProgressionPractice({ index, mode, back, title }: Props) {
   const styles = useThemedStyles(makeStyles);
-  const { instrument, tuning } = useInstrument();
-  const { width } = useWindowDimensions();
+  const { tuning } = useInstrument();
   const [progressionOption, setProgressionOption] = useState(0); // 0 = none
   const [enabled, setEnabled] = useState<number[]>([0]); // which chords are switched on
   const [labelOption, setLabelOption] = useState(0);
@@ -71,12 +66,7 @@ export default function ProgressionPractice({ index, mode, back, title }: Props)
     );
   }
 
-  // The whole neck fits the screen width; a position lights up its frets and fades the rest.
-  const fixedWidth = LABEL_WIDTH + OPEN_FRET_WIDTH;
-  const fitted = Math.floor((width - 2 * SIDE_PADDING - fixedWidth) / instrument.frets);
-  const fretWidth = Math.max(30, Math.min(46, fitted));
-  // The fretboard's exact width, so it can sit in the middle of the screen.
-  const fretboardWidth = fixedWidth + instrument.frets * fretWidth;
+  // A position lights up its frets and fades the rest of the neck.
   const area = position > 0 ? scalePosition(tuning.strings, tonic, scale, position - 1) : undefined;
   const focusCells = area && fretWindow(area, tuning.strings.length);
 
@@ -86,17 +76,10 @@ export default function ProgressionPractice({ index, mode, back, title }: Props)
       : `Chords: ${activeChords.map((c) => c.numeral).join(' ')}`;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.bar}>
-        {/* The back button keeps its place at the left edge ... */}
-        <View style={styles.backColumn}>{back}</View>
-        {/* ... while the other controls sit in the middle of the screen. */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.centreScroll}
-          contentContainerStyle={styles.centre}
-        >
+    <FretboardStage
+      back={back}
+      controls={
+        <>
           <Dropdown
             label={progression ? progression.name : 'Progression'}
             options={['None', ...progressions.map((p) => p.name)]}
@@ -126,39 +109,28 @@ export default function ProgressionPractice({ index, mode, back, title }: Props)
             onChange={setPosition}
             caption={position === 0 ? 'Whole neck' : 'Position'}
           />
-        </ScrollView>
-        {/* An empty column as wide as the back button's, so the centre is the screen's centre. */}
-        <View style={styles.backColumn} />
-      </View>
-
-      {/* The fretboard sits in the middle of the space below the controls. */}
-      <View style={styles.stage}>
-        <View style={{ width: fretboardWidth }}>
-          <Fretboard
-            strings={tuning.strings}
-            frets={instrument.frets}
-            octaveCourses={instrument.octaveCourses}
-            flats={tuning.flats}
-            fretWidth={fretWidth}
-            labelMode={LABEL_MODES[labelOption]}
-            degreeLabels={degreeLabels(tonic, scale)}
-            noteNames={chordNoteNames(tonic, scale, activeChords)}
-            focusCells={focusCells}
-            {...(activeChords.length > 0
-              ? { noteFill: chordFills(activeChords) }
-              : { highlight: { root: tonic, pitchClasses: scalePitchClasses(tonic, scale) } })}
-          />
-          <Text style={styles.status}>
-            {title && <Text style={styles.title}>{title} · </Text>}
-            {activeChords.length === 0
-              ? 'all chords off, showing the key’s scale'
-              : activeChords.length === 1
-                ? `${activeChords[0].name} arpeggio`
-                : 'striped notes belong to more than one chord'}
-          </Text>
-        </View>
-      </View>
-    </View>
+        </>
+      }
+      fretboard={{
+        labelMode: LABEL_MODES[labelOption],
+        degreeLabels: degreeLabels(tonic, scale),
+        noteNames: chordNoteNames(tonic, scale, activeChords),
+        focusCells,
+        ...(activeChords.length > 0
+          ? { noteFill: chordFills(activeChords) }
+          : { highlight: { root: tonic, pitchClasses: scalePitchClasses(tonic, scale) } }),
+      }}
+      status={
+        <>
+          {title && <Text style={styles.title}>{title} · </Text>}
+          {activeChords.length === 0
+            ? 'all chords off, showing the key’s scale'
+            : activeChords.length === 1
+              ? `${activeChords[0].name} arpeggio`
+              : 'striped notes belong to more than one chord'}
+        </>
+      }
+    />
   );
 }
 
@@ -198,41 +170,9 @@ function fretWindow(area: { fret: number }[], stringCount: number): Set<string> 
 
 function makeStyles(colors: Colors) {
   return StyleSheet.create({
-    container: {
-      flex: 1,
-    },
-    bar: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: SIDE_PADDING,
-      paddingVertical: 8,
-    },
-    backColumn: {
-      width: BACK_COLUMN,
-    },
-    centreScroll: {
-      flex: 1,
-    },
-    centre: {
-      flexGrow: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 8,
-    },
     title: {
       color: colors.text,
       fontWeight: '700',
-    },
-    stage: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingBottom: 8,
-    },
-    status: {
-      color: colors.textMuted,
-      fontSize: 14,
-      marginTop: 8,
     },
   });
 }

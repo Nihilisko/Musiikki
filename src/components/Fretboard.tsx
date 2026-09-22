@@ -16,7 +16,7 @@ export type Highlight = {
 
 export type LabelMode = 'names' | 'degrees' | 'both';
 
-type Props = {
+export type FretboardProps = {
   /** Strings from lowest to highest, as MIDI numbers. */
   strings: number[];
   frets: number;
@@ -74,7 +74,7 @@ export default function Fretboard({
   fretWidth = FRET_WIDTH,
   scrollToFret,
   noteFill,
-}: Props) {
+}: FretboardProps) {
   const scrollRef = useRef<ScrollView>(null);
   // The neck looks the same in both themes; only the text around it follows the theme.
   const { colors } = useTheme();
