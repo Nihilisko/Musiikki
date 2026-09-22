@@ -6,6 +6,8 @@ import { cellKey } from '../music/positions';
 import { pitchClass } from '../music/scales';
 import { noteColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
+import { DEFAULT_WOOD, type Wood } from '../theme/woods';
+import WoodGrain from './WoodGrain';
 
 export type Highlight = {
   /** Pitch class of the root note (0-11). */
@@ -48,6 +50,8 @@ export type FretboardProps = {
    * When given, this replaces the scale colours.
    */
   noteFill?: (string[] | undefined)[];
+  /** Fretboard wood: colour, grain and inlay colour. */
+  wood?: Wood;
 };
 
 const FRET_WIDTH = 46;
@@ -74,6 +78,7 @@ export default function Fretboard({
   fretWidth = FRET_WIDTH,
   scrollToFret,
   noteFill,
+  wood = DEFAULT_WOOD,
 }: FretboardProps) {
   const scrollRef = useRef<ScrollView>(null);
   // The neck looks the same in both themes; only the text around it follows the theme.
@@ -129,15 +134,18 @@ export default function Fretboard({
           </View>
 
           <View style={styles.neck}>
+            <WoodGrain wood={wood} />
             {/* Inlay dots behind the strings */}
             <View style={styles.dotLayer} pointerEvents="none">
               {fretNumbers.map((fret) => (
                 <View key={fret} style={[styles.dotCell, { width: cellWidth(fret) }]}>
-                  {SINGLE_DOTS.includes(fret) && <View style={styles.dot} />}
+                  {SINGLE_DOTS.includes(fret) && (
+                    <View style={[styles.dot, { backgroundColor: wood.dot }]} />
+                  )}
                   {DOUBLE_DOTS.includes(fret) && (
                     <View style={{ gap: STRING_HEIGHT * 1.5 }}>
-                      <View style={styles.dot} />
-                      <View style={styles.dot} />
+                      <View style={[styles.dot, { backgroundColor: wood.dot }]} />
+                      <View style={[styles.dot, { backgroundColor: wood.dot }]} />
                     </View>
                   )}
                 </View>
@@ -146,14 +154,16 @@ export default function Fretboard({
 
             {rows.map(({ midi, index }) => (
               <View key={index} style={styles.stringRow}>
-                <View style={styles.stringLine} />
+                <View style={[styles.stringLine, { backgroundColor: wood.metal }]} />
                 {fretNumbers.map((fret) => (
                   <View
                     key={fret}
                     style={[
                       styles.cell,
                       { width: cellWidth(fret) },
-                      fret === 0 ? styles.openCell : styles.fretCell,
+                      fret === 0
+                        ? styles.openCell
+                        : [styles.fretCell, { borderRightColor: wood.metal }],
                     ]}
                   >
                     {(!visibleCells || visibleCells.has(cellKey(index, fret))) && (
@@ -286,8 +296,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   neck: {
-    backgroundColor: '#5b3a21',
     borderRadius: 4,
+    overflow: 'hidden', // keeps the wood grain inside the rounded corners
   },
   dotLayer: {
     ...StyleSheet.absoluteFill,
@@ -301,7 +311,6 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#e8d9b5',
     opacity: 0.5,
   },
   stringRow: {
@@ -314,7 +323,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: '#c9c9c9',
   },
   cell: {
     height: STRING_HEIGHT,
@@ -328,7 +336,6 @@ const styles = StyleSheet.create({
   },
   fretCell: {
     borderRightWidth: 2,
-    borderRightColor: '#b0b0b0',
   },
   note: {
     minWidth: 30,

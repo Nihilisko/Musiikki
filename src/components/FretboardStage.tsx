@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { useInstrument } from '../state/InstrumentContext';
+import { useWood } from '../state/WoodContext';
 import type { Colors } from '../theme/colors';
 import { useThemedStyles } from '../theme/ThemeContext';
 import Fretboard, { LABEL_WIDTH, OPEN_FRET_WIDTH, type FretboardProps } from './Fretboard';
@@ -12,7 +13,10 @@ type Props = {
   /** Dropdowns, steppers... shown centred in the control row. */
   controls: ReactNode;
   /** Everything the fretboard shows; the strings and size come from the chosen instrument. */
-  fretboard: Omit<FretboardProps, 'strings' | 'frets' | 'octaveCourses' | 'flats' | 'fretWidth'>;
+  fretboard: Omit<
+    FretboardProps,
+    'strings' | 'frets' | 'octaveCourses' | 'flats' | 'fretWidth' | 'wood'
+  >;
   /** A line under the fretboard, e.g. "C major · C7 arpeggio". */
   status?: ReactNode;
 };
@@ -32,6 +36,7 @@ const WIDE_SCREEN = 900;
 export default function FretboardStage({ back, controls, fretboard, status }: Props) {
   const styles = useThemedStyles(makeStyles);
   const { instrument, tuning } = useInstrument();
+  const { wood } = useWood();
   const { width } = useWindowDimensions();
 
   const fixedWidth = LABEL_WIDTH + OPEN_FRET_WIDTH;
@@ -65,6 +70,7 @@ export default function FretboardStage({ back, controls, fretboard, status }: Pr
             octaveCourses={instrument.octaveCourses}
             flats={tuning.flats}
             fretWidth={fretWidth}
+            wood={wood}
           />
           {status !== undefined && <Text style={styles.status}>{status}</Text>}
         </View>
