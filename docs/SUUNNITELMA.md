@@ -24,6 +24,9 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | Kierron värit | Väri kuuluu funktiolle (I aina sama väri sävellajista riippumatta). Yhteiset sävelet kaksivärisinä. Kun kaikki soinnut ovat pois päältä, otelauta palaa tavallisiin skaalaväreihin |
 | Otelautasivut | Kaikki otelautasivut (skaalat ja harjoitusnäkymä) ovat vaakatasossa samalla asettelulla: paluunappi vasemmalla, pudotusvalikot keskellä, koko kaula näkyvissä, asemalaskuri − 0 + (valittu asema kirkkaana, muu kaula himmeänä). Sävellaji valitaan napauttamalla ympyrästä (12 säveltä kvinttijärjestyksessä) |
 | Teema | Asetuksissa Tumma / Vaalea / Puhelimen mukaan (oletus). Vain taustat, pinnat ja tekstit vaihtuvat; sävelten värit, otelauta ja kvinttiympyrä pysyvät samoina |
+| Nimi | StringSense. Tavaramerkki tarkistetaan ennen julkaisua |
+| Logo | 50-luvun käsiala (Lobster, SIL Open Font License, muutettu kuvioksi). Kuvake: kermanvalkoinen S ja tummanpunainen 3D-varjo hot rod -punaisella (#df2a2f → #bf1a22). Tekstilogo: nimi pyöreäpäisessä punaisessa merkissä, jossa on kermanvalkoinen reunaviiva. Lähdetiedostot `assets/brand/` |
+| Brändivärit | Hot rod -punainen #d42330, kerma #fbf1dc, varjo #5a0a10 |
 | Premium | Päätetään myöhemmin, kun sovellus on pidemmällä. Ei saa estää käyttöönottoa alussa |
 | Ei tehdä | Tabieditori, biisikirjasto, videotunnit |
 
@@ -38,7 +41,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | 3 ✅ | Navigointi | Soitin → vire → valikko |
 | 3c ✅ | Muistaminen | Soitin ja vire tallentuvat, avaus suoraan valikkoon |
 | 4 ✅ | Skaalojen syventäminen | (a) ✅ nimet/asteet, (b) ✅ oikeat ♭/# -nimet sävellajin mukaan, (c) ✅ blue notes, (d) ✅ asemat: pentatonisen boksit ja 3 säveltä kielellä, (e) ✅ arpeggiot, (f) ✅ kvinttiympyrä ja sointukierrot otelaudalla |
-| 5 | Asetukset | (a) ✅ asetussivu ja teema, (b) otelaudan puulaji, (c) sävelten värit. Valinnat tallentuvat |
+| 5 | Asetukset | (a) ✅ asetussivu ja teema, (brändi) ✅ nimi ja logo valittu, seuraavaksi sovelluskuvake ja värit koodiin, (b) otelaudan puulaji, (c) sävelten värit. Valinnat tallentuvat |
 | 6 | Omat skaalat | Luo, muokkaa, poista |
 | 7 | Soinnut | Triadit, inversiot, sointukirjasto otteineen (ukulele). Avoimen virityksen sointukartta (sikarilaatikko, slide) |
 | 8 | CAGED | Viisi muotoa kitaralle |
