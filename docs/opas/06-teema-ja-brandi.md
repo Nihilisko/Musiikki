@@ -12,7 +12,7 @@ Vaihe 5 alkoi asetuksista, mutta laajeni: sovellukseen tuli tumma ja vaalea teem
 | `state/orientation.ts` | `useLandscape()`: ruutu kääntyy vaakaan auki ollessaan ja takaisin pystyyn suljettaessa |
 | `components/FretboardStage.tsx` | Yhteinen vaaka-asettelu: paluunappi vasemmalla, valikot keskellä, koko kaula sovitettuna leveyteen |
 | `components/KeyPicker.tsx` | "Key: C" -nappi, joka avaa 12 säveltä ympyrässä |
-| `components/Wordmark.tsx` | StringSense-logo piirrettynä SVG-muodoista |
+| `components/Wordmark.tsx` | ScaleSmith-logo piirrettynä SVG-muodoista |
 | `assets/brand/*.svg` | Logon ja kuvakkeen lähdetiedostot |
 | `assets/*.png` | Sovelluskuvake ja Androidin adaptiivisen kuvakkeen kerrokset |
 
