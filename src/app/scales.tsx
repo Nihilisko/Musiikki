@@ -4,8 +4,9 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import ChipRow from '../components/ChipRow';
 import Fretboard, { type LabelMode } from '../components/Fretboard';
 import { degreeLabels } from '../music/degrees';
-import { NOTE_NAMES } from '../music/notes';
+import { KEY_NAMES } from '../music/notes';
 import { SCALES, scalePitchClasses } from '../music/scales';
+import { spellScale } from '../music/spelling';
 import { useInstrument } from '../state/InstrumentContext';
 import { colors } from '../theme/colors';
 
@@ -23,17 +24,29 @@ export default function ScalesScreen() {
 
   const scale = scaleOption > 0 ? SCALES[scaleOption - 1] : undefined;
   const highlight = scale ? { root, pitchClasses: scalePitchClasses(root, scale) } : undefined;
+  const spelled = spellScale(root, scale);
+  // The scale's notes in order, e.g. "A C D E♭ E G".
+  const scaleNotes = scale
+    ? scale.intervals.map((interval) => spelled.names[(root + interval) % 12]).join('  ')
+    : '';
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
       <Text style={styles.sectionLabel}>Key</Text>
-      <ChipRow options={NOTE_NAMES} selected={root} onSelect={setRoot} />
+      <ChipRow options={KEY_NAMES} selected={root} onSelect={setRoot} />
 
       <Text style={styles.sectionLabel}>Scale</Text>
       <ChipRow options={SCALE_OPTIONS} selected={scaleOption} onSelect={setScaleOption} />
 
       <Text style={styles.sectionLabel}>Labels</Text>
       <ChipRow options={LABEL_OPTIONS} selected={labelOption} onSelect={setLabelOption} />
+
+      <View style={styles.summary}>
+        <Text style={styles.summaryTitle}>
+          {spelled.rootName} {scale ? scale.name : '(all notes)'}
+        </Text>
+        {scale && <Text style={styles.summaryNotes}>{scaleNotes}</Text>}
+      </View>
 
       <View style={styles.fretboard}>
         <Fretboard
@@ -43,6 +56,8 @@ export default function ScalesScreen() {
           highlight={highlight}
           labelMode={LABEL_MODES[labelOption]}
           degreeLabels={degreeLabels(root, scale)}
+          noteNames={spelled.names}
+          flats={tuning.flats}
         />
       </View>
     </ScrollView>
@@ -62,8 +77,23 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 8,
   },
-  fretboard: {
+  summary: {
+    paddingHorizontal: 16,
     marginTop: 24,
+    gap: 4,
+  },
+  summaryTitle: {
+    color: colors.text,
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  summaryNotes: {
+    color: colors.accent,
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  fretboard: {
+    marginTop: 16,
     paddingLeft: 12,
   },
 });

@@ -24,6 +24,10 @@ type Props = {
   labelMode?: LabelMode;
   /** Degree name for each pitch class (index 0 = C ... 11 = B). */
   degreeLabels?: string[];
+  /** Note name for each pitch class, spelled for the key (e.g. B♭ in F major). */
+  noteNames?: (string | undefined)[];
+  /** Write string names and unnamed notes with flats instead of sharps. */
+  flats?: boolean;
 };
 
 const FRET_WIDTH = 46;
@@ -39,6 +43,8 @@ export default function Fretboard({
   highlight,
   labelMode = 'names',
   degreeLabels,
+  noteNames,
+  flats = false,
 }: Props) {
   // Without degree names there is nothing else to show, so fall back to note names.
   const mode = degreeLabels ? labelMode : 'names';
@@ -54,9 +60,9 @@ export default function Fretboard({
         <View style={styles.numberRow} />
         {rows.map(({ midi, index }) => (
           <View key={index} style={styles.labelCell}>
-            <Text style={styles.labelText}>{noteNameWithOctave(midi)}</Text>
+            <Text style={styles.labelText}>{noteNameWithOctave(midi, flats)}</Text>
             {index < octaveCourses && (
-              <Text style={styles.octaveText}>+{noteNameWithOctave(midi + 12)}</Text>
+              <Text style={styles.octaveText}>+{noteNameWithOctave(midi + 12, flats)}</Text>
             )}
           </View>
         ))}
@@ -105,6 +111,7 @@ export default function Fretboard({
                       highlight={highlight}
                       mode={mode}
                       degreeLabels={degreeLabels}
+                      name={noteNames?.[pitchClass(midi + fret)] ?? noteName(midi + fret, flats)}
                     />
                   </View>
                 ))}
@@ -119,18 +126,18 @@ export default function Fretboard({
 
 type NoteDotProps = {
   midi: number;
+  name: string;
   highlight?: Highlight;
   mode: LabelMode;
   degreeLabels?: string[];
 };
 
-function NoteDot({ midi, highlight, mode, degreeLabels }: NoteDotProps) {
+function NoteDot({ midi, name, highlight, mode, degreeLabels }: NoteDotProps) {
   const pc = pitchClass(midi);
   if (highlight && !highlight.pitchClasses.includes(pc)) {
     return null; // not in the scale: leave the fret empty
   }
   const isRoot = highlight?.root === pc;
-  const name = noteName(midi);
   const degree = degreeLabels?.[pc] ?? '';
   const textStyle = [styles.noteText, isRoot && styles.rootText];
 

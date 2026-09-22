@@ -5,6 +5,8 @@
 export type Tuning = {
   name: string;
   strings: number[];
+  /** Write the string names with flats (E♭ A♭...) instead of sharps. */
+  flats?: boolean;
 };
 
 export type Instrument = {
@@ -25,7 +27,7 @@ export const INSTRUMENTS: Instrument[] = [
       { name: 'Standard', strings: [40, 45, 50, 55, 59, 64] },
       { name: 'Drop D', strings: [38, 45, 50, 55, 59, 64] },
       { name: 'Double Drop D', strings: [38, 45, 50, 55, 59, 62] },
-      { name: 'Eb Standard', strings: [39, 44, 49, 54, 58, 63] },
+      { name: 'E♭ Standard', strings: [39, 44, 49, 54, 58, 63], flats: true },
       { name: 'D Standard', strings: [38, 43, 48, 53, 57, 62] },
       { name: 'DADGAD', strings: [38, 45, 50, 55, 57, 62] },
       { name: 'Open G', strings: [38, 43, 50, 55, 59, 62] },

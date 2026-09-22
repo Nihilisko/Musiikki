@@ -29,7 +29,7 @@ export default function ChooseTuningScreen() {
           >
             <Text style={[styles.name, active && styles.activeText]}>{tuning.name}</Text>
             <Text style={[styles.notes, active && styles.activeText]}>
-              {tuning.strings.map(noteName).join(' ')}
+              {tuning.strings.map((midi) => noteName(midi, tuning.flats)).join(' ')}
             </Text>
           </Pressable>
         );
