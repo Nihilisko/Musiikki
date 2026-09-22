@@ -18,6 +18,9 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | Sävelten värit | Roolin mukaan (pohjasävel, skaalan sävelet, blue notes), valmiista paletista |
 | Otelaudan puulajit | Ruusupuu, vaahtera, paahdettu vaahtera, pau ferro, valkoinen |
 | Omat skaalat | Luo, muokkaa, poista |
+| Kvinttiympyrä | Oma sivunsa valikossa. Ulkokiekko pyörii, sisämaski (Major/Minor, I–vii°) pysyy paikallaan, kuten fyysisessä kvinttiympyrässä. Valittu sävellaji lukitaan ja muistetaan |
+| Sointukierrot | Kvinttiympyrästä valitaan kierto (12-tahtinen blues, pop I–V–vi–IV, jazz ii–V–I, 50-luku I–vi–IV–V). Jokainen sointu on päälle/pois-kytkin, ja otelauta näyttää päällä olevien sointujen arpeggiot |
+| Kierron värit | Väri kuuluu funktiolle (I aina sama väri sävellajista riippumatta). Yhteiset sävelet kaksivärisinä. Kun kaikki soinnut ovat pois päältä, otelauta palaa tavallisiin skaalaväreihin |
 | Premium | Päätetään myöhemmin, kun sovellus on pidemmällä. Ei saa estää käyttöönottoa alussa |
 | Ei tehdä | Tabieditori, biisikirjasto, videotunnit |
 
@@ -31,12 +34,12 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | 2 ✅ | Skaalat | 13 skaalaa ja moodia missä tahansa sävellajissa |
 | 3 ✅ | Navigointi | Soitin → vire → valikko |
 | 3c ✅ | Muistaminen | Soitin ja vire tallentuvat, avaus suoraan valikkoon |
-| 4 | Skaalojen syventäminen | (a) ✅ nimet/asteet, (b) ✅ oikeat ♭/# -nimet sävellajin mukaan, (c) blue notes, (d) asemat: pentatonisen boksit ja 3 säveltä kielellä, (e) arpeggiot |
+| 4 | Skaalojen syventäminen | (a) ✅ nimet/asteet, (b) ✅ oikeat ♭/# -nimet sävellajin mukaan, (c) blue notes, (d) asemat: pentatonisen boksit ja 3 säveltä kielellä, (e) arpeggiot, (f) kvinttiympyrä ja sointukierrot otelaudalla |
 | 5 | Asetukset | Sävelten värit, otelaudan puulaji, tallennus |
 | 6 | Omat skaalat | Luo, muokkaa, poista |
 | 7 | Soinnut | Triadit, inversiot, sointukirjasto otteineen (ukulele). Avoimen virityksen sointukartta (sikarilaatikko, slide) |
 | 8 | CAGED | Viisi muotoa kitaralle |
-| 9 | Teoria | Kvinttiympyrä, sävellajin soinnut, capo- ja transponointilaskin (kitara, 12-kielinen), teoriamuistiot |
+| 9 | Teoria | Teoriamuistiot (linkki kvinttiympyrään), sävellajin soinnut, capo- ja transponointilaskin (kitara, 12-kielinen) |
 | 10 | Metronomi | Tempo, tahtilaji, korostukset |
 | 11 | Taustasoitto | Drone, sointukierrot rumpukompeilla, bassolinjat (basso), rämpytyskuviot (ukulele) |
 | 12 | Korvaharjoitukset | Sävelet, intervallit, sointutyypit, harmonisointi |
