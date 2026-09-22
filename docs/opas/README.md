@@ -17,6 +17,7 @@ Nämä tiedostot selittävät sovelluksen koodin vaihe vaiheelta. Jokaisessa luv
 | 3 | [Navigointi ja yhteinen tila](03-navigointi.md) | Expo Router, navigointipino, Context |
 | 4 | [Valintojen tallentaminen](04-tallennus.md) | AsyncStorage, async/await, useEffect, lataustila |
 | 5 | [Teoriamoottori](05-teoriamoottori.md) | Asteet, oikeat nimet, asemat, arpeggiot, kvinttiympyrä, SVG, refaktorointi |
+| 6 | [Teema, vaakanäkymät ja brändi](06-teema-ja-brandi.md) | Väriroolit, teeman valinta, useMemo, siivousfunktio, yhteinen asettelu, logo ja kuvake |
 
 ## Sovelluksen ajaminen
 
@@ -35,4 +36,6 @@ npx tsc --noEmit   # tarkistaa tyypit: löytää virheet ennen kuin sovellus kaa
 | **Tila (state)** | Tieto, joka voi muuttua, esim. valittu soitin. Kun tila muuttuu, ruutu piirretään uudelleen |
 | **Hook (koukku)** | `use`-alkuinen funktio, jolla komponentti saa käyttöönsä Reactin ominaisuuksia, esim. `useState` |
 | **TypeScript** | JavaScript, jossa on tyypit. Kertoo virheistä jo ennen kuin koodia ajetaan |
+| **Väriroolit** | Värit nimetty käyttötarkoituksen mukaan (tausta, teksti, valinta), jotta teeman voi vaihtaa yhdestä paikasta |
+| **Siivousfunktio** | Funktio, jonka `useEffect` palauttaa. React kutsuu sitä, kun ruutu suljetaan |
 | **JSX** | HTML:ää muistuttava merkintätapa JavaScriptin sisällä: `<Text>Hei</Text>` |
