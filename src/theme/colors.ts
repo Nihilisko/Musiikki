@@ -10,34 +10,43 @@ export type Colors = {
   text: string;
   /** Secondary text: labels, hints. */
   textMuted: string;
-  /** Fill for selected buttons and highlights (yellow). */
+  /** Fill for selected buttons and highlights: cream in the dark theme, dark brown in the light one. */
   accent: string;
   /** Text or icons in the accent colour on a normal surface; darker in the light theme to stay readable. */
   accentText: string;
   /** Text on top of an accent fill. */
   onAccent: string;
+  /** The logo's hot rod red, kept for the main action on a screen (e.g. Lock) so it stands out. */
+  brand: string;
+  /** Text on top of the brand red. */
+  onBrand: string;
 };
 
+// Warm neutrals from the logo: dark roasted wood and cream, so the app and the icon match.
 export const darkColors: Colors = {
-  background: '#141518',
-  surface: '#1f2126',
-  border: '#2a2d31',
-  text: '#ffffff',
-  textMuted: '#9aa0a6',
-  accent: '#f0b429',
-  accentText: '#f0b429',
-  onAccent: '#1a1a1a',
+  background: '#15110f',
+  surface: '#231c18',
+  border: '#382d27',
+  text: '#f7efe3',
+  textMuted: '#a99b8e',
+  accent: '#f1e2c2',
+  accentText: '#f1e2c2',
+  onAccent: '#1d1512',
+  brand: '#d42330',
+  onBrand: '#fbf1dc',
 };
 
 export const lightColors: Colors = {
-  background: '#f3f4f6',
-  surface: '#ffffff',
-  border: '#dde0e5',
-  text: '#15171a',
-  textMuted: '#5f6670',
-  accent: '#f0b429',
-  accentText: '#a86f00',
-  onAccent: '#1a1a1a',
+  background: '#f6eedf',
+  surface: '#fffaf1',
+  border: '#e5d7bf',
+  text: '#241a15',
+  textMuted: '#6f6358',
+  accent: '#3a2a22',
+  accentText: '#8b4a2b',
+  onAccent: '#fbf1dc',
+  brand: '#d42330',
+  onBrand: '#fbf1dc',
 };
 
 // Note colours on the fretboard, by role. They are the same in both themes.

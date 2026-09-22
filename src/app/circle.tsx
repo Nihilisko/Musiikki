@@ -87,11 +87,11 @@ export default function CircleScreen() {
       </ScrollView>
 
       <Pressable onPress={lockAndPractise} style={styles.lock}>
-        <Ionicons name={isLocked ? 'lock-closed' : 'lock-open'} size={18} color={colors.onAccent} />
+        <Ionicons name={isLocked ? 'lock-closed' : 'lock-open'} size={18} color={colors.onBrand} />
         <Text style={styles.lockText}>
           {isLocked ? `Practise ${keyName(index, mode)}` : `Lock ${keyName(index, mode)}`}
         </Text>
-        <Ionicons name="chevron-up" size={18} color={colors.onAccent} />
+        <Ionicons name="chevron-up" size={18} color={colors.onBrand} />
       </Pressable>
       {lockedKey && !isLocked && (
         <Text style={styles.hint}>Locked now: {keyName(lockedKey.index, lockedKey.mode)}</Text>
@@ -169,10 +169,10 @@ function makeStyles(colors: Colors) {
       marginHorizontal: 16,
       paddingVertical: 14,
       borderRadius: 12,
-      backgroundColor: colors.accent,
+      backgroundColor: colors.brand,
     },
     lockText: {
-      color: colors.onAccent,
+      color: colors.onBrand,
       fontSize: 16,
       fontWeight: '700',
     },

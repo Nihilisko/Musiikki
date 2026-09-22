@@ -89,7 +89,7 @@ export default function Dropdown({
               {options.map((option, i) => {
                 const on = isOn(i);
                 const color = optionColors?.[i] ?? colors.accent;
-                // Chord colours are dark enough for white text; the yellow accent needs dark text.
+                // Chord colours are dark enough for white text; the accent has its own text colour.
                 const onText = optionColors ? '#ffffff' : colors.onAccent;
                 return (
                   <Pressable

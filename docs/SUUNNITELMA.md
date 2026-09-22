@@ -27,6 +27,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | Nimi | StringSense. Tavaramerkki tarkistetaan ennen julkaisua |
 | Logo | 50-luvun käsiala (Lobster, SIL Open Font License, muutettu kuvioksi). Kuvake: kermanvalkoinen S ja tummanpunainen 3D-varjo hot rod -punaisella (#df2a2f → #bf1a22). Tekstilogo: nimi pyöreäpäisessä punaisessa merkissä, jossa on kermanvalkoinen reunaviiva. Lähdetiedostot `assets/brand/` |
 | Brändivärit | Hot rod -punainen #d42330, kerma #fbf1dc, varjo #5a0a10 |
+| Sovelluksen värit | Lämmin teema logon mukaan: tumma = paahdettu puu (#15110f), vaalea = kerma (#f6eedf). Valinnat kermalla (tumma) tai tummanruskealla (vaalea). Brändipunainen vain logossa ja pääpainikkeissa (esim. Lock). Pohjasävel pysyy punaisena otelaudalla |
 | Premium | Päätetään myöhemmin, kun sovellus on pidemmällä. Ei saa estää käyttöönottoa alussa |
 | Ei tehdä | Tabieditori, biisikirjasto, videotunnit |
 
