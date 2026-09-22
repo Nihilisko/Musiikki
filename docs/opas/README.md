@@ -14,7 +14,8 @@ Nämä tiedostot selittävät sovelluksen koodin vaihe vaiheelta. Jokaisessa luv
 |---|---|---|
 | 1 | [Otelauta ja soittimet](01-otelauta.md) | Expo, komponentit, props, tila, tyylit, MIDI-numerot |
 | 2 | [Skaalat ja moodit](02-skaalat.md) | Intervallit, jakojäännös, valinnaiset propsit, taulukkometodit |
-| 3 | [Navigointi ja yhteinen tila](03-navigointi.md) | Expo Router, kansiorakenne, Context, modaalit |
+| 3 | [Navigointi ja yhteinen tila](03-navigointi.md) | Expo Router, navigointipino, Context |
+| 4 | [Valintojen tallentaminen](04-tallennus.md) | AsyncStorage, async/await, useEffect, lataustila |
 
 ## Sovelluksen ajaminen
 
