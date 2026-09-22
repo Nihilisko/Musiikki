@@ -1,6 +1,7 @@
 import { Redirect } from 'expo-router';
 
-// The app opens on the Learn tab.
+// Start of the app. For now it always starts by choosing an instrument;
+// later it will skip straight to the menu when a choice has been saved.
 export default function Index() {
-  return <Redirect href="/learn" />;
+  return <Redirect href="/choose-instrument" />;
 }

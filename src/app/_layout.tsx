@@ -1,6 +1,7 @@
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
+import InstrumentButton from '../components/InstrumentButton';
 import { InstrumentProvider } from '../state/InstrumentContext';
 import { colors } from '../theme/colors';
 
@@ -16,18 +17,21 @@ const theme = {
   },
 };
 
-// Root of the app: the tab bar, plus the instrument picker that slides up over it.
+// The whole app is one stack: choose instrument -> choose tuning -> menu -> topic screens.
 export default function RootLayout() {
   return (
     <ThemeProvider value={theme}>
       <InstrumentProvider>
         <StatusBar style="light" />
         <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="choose-instrument" options={{ title: 'Choose instrument' }} />
+          <Stack.Screen name="choose-tuning" options={{ title: 'Choose tuning' }} />
           <Stack.Screen
-            name="instrument"
-            options={{ title: 'Instrument', presentation: 'modal' }}
+            name="home"
+            options={{ title: '', headerLeft: () => <InstrumentButton /> }}
           />
+          <Stack.Screen name="scales" options={{ title: 'Scales & modes' }} />
         </Stack>
       </InstrumentProvider>
     </ThemeProvider>

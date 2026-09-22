@@ -9,7 +9,7 @@ import { colors } from '../theme/colors';
 export default function InstrumentButton() {
   const { instrument, tuning } = useInstrument();
   return (
-    <Pressable onPress={() => router.push('/instrument')} style={styles.button} hitSlop={8}>
+    <Pressable onPress={() => router.push('/choose-instrument')} style={styles.button} hitSlop={8}>
       <Text style={styles.text} numberOfLines={1}>
         {instrument.name} · {tuning.name}
       </Text>
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 16,
     backgroundColor: colors.surface,
-    marginRight: 8,
+    marginHorizontal: 8,
   },
   text: {
     color: colors.text,

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import ChipRow from '../../../components/ChipRow';
-import Fretboard from '../../../components/Fretboard';
-import { NOTE_NAMES } from '../../../music/notes';
-import { SCALES, scalePitchClasses } from '../../../music/scales';
-import { useInstrument } from '../../../state/InstrumentContext';
-import { colors } from '../../../theme/colors';
+import ChipRow from '../components/ChipRow';
+import Fretboard from '../components/Fretboard';
+import { NOTE_NAMES } from '../music/notes';
+import { SCALES, scalePitchClasses } from '../music/scales';
+import { useInstrument } from '../state/InstrumentContext';
+import { colors } from '../theme/colors';
 
 // First option shows every note; the rest are the scales.
 const SCALE_OPTIONS = ['All notes', ...SCALES.map((s) => s.name)];
