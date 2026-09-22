@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import ChipRow from '../components/ChipRow';
-import Fretboard from '../components/Fretboard';
+import Fretboard, { type LabelMode } from '../components/Fretboard';
+import { degreeLabels } from '../music/degrees';
 import { NOTE_NAMES } from '../music/notes';
 import { SCALES, scalePitchClasses } from '../music/scales';
 import { useInstrument } from '../state/InstrumentContext';
@@ -11,10 +12,14 @@ import { colors } from '../theme/colors';
 // First option shows every note; the rest are the scales.
 const SCALE_OPTIONS = ['All notes', ...SCALES.map((s) => s.name)];
 
+const LABEL_MODES: LabelMode[] = ['names', 'degrees', 'both'];
+const LABEL_OPTIONS = ['Names', 'Degrees', 'Both'];
+
 export default function ScalesScreen() {
   const { instrument, tuning } = useInstrument();
   const [root, setRoot] = useState(0); // pitch class, 0 = C
   const [scaleOption, setScaleOption] = useState(0);
+  const [labelOption, setLabelOption] = useState(0);
 
   const scale = scaleOption > 0 ? SCALES[scaleOption - 1] : undefined;
   const highlight = scale ? { root, pitchClasses: scalePitchClasses(root, scale) } : undefined;
@@ -27,12 +32,17 @@ export default function ScalesScreen() {
       <Text style={styles.sectionLabel}>Scale</Text>
       <ChipRow options={SCALE_OPTIONS} selected={scaleOption} onSelect={setScaleOption} />
 
+      <Text style={styles.sectionLabel}>Labels</Text>
+      <ChipRow options={LABEL_OPTIONS} selected={labelOption} onSelect={setLabelOption} />
+
       <View style={styles.fretboard}>
         <Fretboard
           strings={tuning.strings}
           frets={instrument.frets}
           octaveCourses={instrument.octaveCourses}
           highlight={highlight}
+          labelMode={LABEL_MODES[labelOption]}
+          degreeLabels={degreeLabels(root, scale)}
         />
       </View>
     </ScrollView>

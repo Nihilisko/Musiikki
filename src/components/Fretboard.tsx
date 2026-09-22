@@ -10,6 +10,8 @@ export type Highlight = {
   pitchClasses: number[];
 };
 
+export type LabelMode = 'names' | 'degrees' | 'both';
+
 type Props = {
   /** Strings from lowest to highest, as MIDI numbers. */
   strings: number[];
@@ -18,6 +20,10 @@ type Props = {
   octaveCourses?: number;
   /** When given, only these notes are shown and the root is marked. */
   highlight?: Highlight;
+  /** What to write on the notes. Degrees need `degreeLabels`. */
+  labelMode?: LabelMode;
+  /** Degree name for each pitch class (index 0 = C ... 11 = B). */
+  degreeLabels?: string[];
 };
 
 const FRET_WIDTH = 46;
@@ -26,7 +32,17 @@ const STRING_HEIGHT = 36;
 const SINGLE_DOTS = [3, 5, 7, 9, 15, 17, 19, 21];
 const DOUBLE_DOTS = [12, 24];
 
-export default function Fretboard({ strings, frets, octaveCourses = 0, highlight }: Props) {
+export default function Fretboard({
+  strings,
+  frets,
+  octaveCourses = 0,
+  highlight,
+  labelMode = 'names',
+  degreeLabels,
+}: Props) {
+  // Without degree names there is nothing else to show, so fall back to note names.
+  const mode = degreeLabels ? labelMode : 'names';
+
   const fretNumbers = Array.from({ length: frets + 1 }, (_, i) => i);
   // Highest string on top, like in tabs.
   const rows = strings.map((midi, index) => ({ midi, index })).reverse();
@@ -84,8 +100,12 @@ export default function Fretboard({ strings, frets, octaveCourses = 0, highlight
                       fret === 0 ? styles.openCell : styles.fretCell,
                     ]}
                   >
-                    <NoteDot midi={midi + fret} highlight={highlight} />
-
+                    <NoteDot
+                      midi={midi + fret}
+                      highlight={highlight}
+                      mode={mode}
+                      degreeLabels={degreeLabels}
+                    />
                   </View>
                 ))}
               </View>
@@ -97,15 +117,33 @@ export default function Fretboard({ strings, frets, octaveCourses = 0, highlight
   );
 }
 
-function NoteDot({ midi, highlight }: { midi: number; highlight?: Highlight }) {
+type NoteDotProps = {
+  midi: number;
+  highlight?: Highlight;
+  mode: LabelMode;
+  degreeLabels?: string[];
+};
+
+function NoteDot({ midi, highlight, mode, degreeLabels }: NoteDotProps) {
   const pc = pitchClass(midi);
   if (highlight && !highlight.pitchClasses.includes(pc)) {
     return null; // not in the scale: leave the fret empty
   }
   const isRoot = highlight?.root === pc;
+  const name = noteName(midi);
+  const degree = degreeLabels?.[pc] ?? '';
+  const textStyle = [styles.noteText, isRoot && styles.rootText];
+
   return (
     <View style={[styles.note, highlight && styles.scaleNote, isRoot && styles.rootNote]}>
-      <Text style={[styles.noteText, isRoot && styles.rootText]}>{noteName(midi)}</Text>
+      {mode === 'names' && <Text style={textStyle}>{name}</Text>}
+      {mode === 'degrees' && <Text style={textStyle}>{degree}</Text>}
+      {mode === 'both' && (
+        <>
+          <Text style={[textStyle, styles.smallText]}>{name}</Text>
+          <Text style={[textStyle, styles.tinyText]}>{degree}</Text>
+        </>
+      )}
     </View>
   );
 }
@@ -190,9 +228,9 @@ const styles = StyleSheet.create({
     borderRightColor: '#b0b0b0',
   },
   note: {
-    minWidth: 26,
-    height: 26,
-    borderRadius: 13,
+    minWidth: 30,
+    height: 30,
+    borderRadius: 15,
     paddingHorizontal: 3,
     backgroundColor: '#1e1e1e',
     alignItems: 'center',
@@ -208,6 +246,15 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 11,
     fontWeight: '600',
+  },
+  smallText: {
+    fontSize: 10,
+    lineHeight: 11,
+  },
+  tinyText: {
+    fontSize: 8,
+    lineHeight: 9,
+    fontWeight: '400',
   },
   rootText: {
     color: '#1a1a1a',
