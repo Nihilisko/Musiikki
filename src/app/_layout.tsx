@@ -1,10 +1,12 @@
 import { DarkTheme, router, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 
 import BackButton from '../components/BackButton';
 import InstrumentButton from '../components/InstrumentButton';
 import { InstrumentProvider } from '../state/InstrumentContext';
 import { KeyProvider } from '../state/KeyContext';
+import { lockPortrait } from '../state/orientation';
 import { colors } from '../theme/colors';
 
 const theme = {
@@ -21,6 +23,9 @@ const theme = {
 
 // The whole app is one stack: choose instrument -> choose tuning -> menu -> topic screens.
 export default function RootLayout() {
+  // The app is used upright; only the practice view turns sideways.
+  useEffect(lockPortrait, []);
+
   return (
     <ThemeProvider value={theme}>
       <InstrumentProvider>
@@ -59,8 +64,7 @@ export default function RootLayout() {
               name="progression"
               options={{
                 headerShown: false,
-                // Slides up over the circle; pulling its handle down slides it away again.
-                presentation: 'modal',
+                // Slides up over the circle; its Circle button slides it away again.
                 animation: 'slide_from_bottom',
               }}
             />

@@ -1,43 +1,27 @@
-import { router } from 'expo-router';
-import { useRef } from 'react';
-import { PanResponder, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
+import BackButton from '../components/BackButton';
 import ProgressionPractice from '../components/ProgressionPractice';
 import { keyName } from '../music/circle';
 import { useLockedKey } from '../state/KeyContext';
+import { lockLandscape, lockPortrait } from '../state/orientation';
 import { colors } from '../theme/colors';
 
-/** How far down (in pixels) the handle must be pulled to close the screen. */
-const CLOSE_DISTANCE = 80;
-
-// Practice view for the locked key: progressions and the fretboard, nothing else.
-// Pull the handle at the top down to go back to the circle.
+// Practice view for the locked key: progressions and the whole neck, turned sideways.
 export default function ProgressionScreen() {
   const { lockedKey } = useLockedKey();
 
-  // Close as soon as the pull is long enough, instead of waiting for the finger to lift:
-  // other gestures (like the modal's own) may take over before the release arrives.
-  const closed = useRef(false);
-  const swipe = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gesture) => gesture.dy > 8,
-      onPanResponderTerminationRequest: () => false,
-      onPanResponderGrant: () => {
-        closed.current = false;
-      },
-      onPanResponderMove: (_, gesture) => {
-        if (!closed.current && gesture.dy > CLOSE_DISTANCE) {
-          closed.current = true;
-          router.back();
-        }
-      },
-    }),
-  ).current;
+  // Sideways while this screen is open, upright again when leaving.
+  useEffect(() => {
+    lockLandscape();
+    return lockPortrait;
+  }, []);
 
   if (!lockedKey) {
     return (
       <View style={styles.empty}>
+        <BackButton label="Circle" />
         <Text style={styles.emptyText}>Lock a key on the circle of fifths first.</Text>
       </View>
     );
@@ -45,16 +29,16 @@ export default function ProgressionScreen() {
 
   return (
     <View style={styles.screen}>
-      {/* The handle: pull down here to return to the circle. */}
-      <View style={styles.handleArea} {...swipe.panHandlers}>
-        <View style={styles.handle} />
-        <Text style={styles.key}>{keyName(lockedKey.index, lockedKey.mode)}</Text>
-        <Text style={styles.hint}>Pull down to go back to the circle</Text>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.content}>
-        <ProgressionPractice index={lockedKey.index} mode={lockedKey.mode} />
-      </ScrollView>
+      <ProgressionPractice
+        index={lockedKey.index}
+        mode={lockedKey.mode}
+        leading={
+          <>
+            <BackButton label="Circle" />
+            <Text style={styles.key}>{keyName(lockedKey.index, lockedKey.mode)}</Text>
+          </>
+        }
+      />
     </View>
   );
 }
@@ -63,39 +47,21 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  handleArea: {
-    alignItems: 'center',
-    paddingTop: 10,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  handle: {
-    width: 44,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.textMuted,
-    marginBottom: 10,
+    paddingTop: 8,
   },
   key: {
     color: colors.text,
-    fontSize: 22,
+    fontSize: 17,
     fontWeight: '700',
-  },
-  hint: {
-    color: colors.textMuted,
-    fontSize: 12,
-    marginTop: 2,
-  },
-  content: {
-    paddingBottom: 40,
+    marginRight: 4,
   },
   empty: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 16,
     padding: 24,
+    backgroundColor: colors.background,
   },
   emptyText: {
     color: colors.textMuted,

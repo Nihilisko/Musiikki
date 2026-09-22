@@ -19,7 +19,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | Otelaudan puulajit | Ruusupuu, vaahtera, paahdettu vaahtera, pau ferro, valkoinen |
 | Omat skaalat | Luo, muokkaa, poista |
 | Kvinttiympyrä | Oma sivunsa valikossa. Ulkokiekko pyörii, sisämaski (Major/Minor, I–vii°) pysyy paikallaan, kuten fyysisessä kvinttiympyrässä. Valittu sävellaji lukitaan ja muistetaan |
-| Harjoitusnäkymä | Lock-nappi lukitsee sävellajin ja avaa oman näkymän, jossa on vain kierrot ja otelauta. Ympyrään palataan vetämällä alas. Ympyrän koko sovitetaan näytön korkeuteen, jotta Lock-nappi näkyy ilman vieritystä |
+| Harjoitusnäkymä | Lock-nappi lukitsee sävellajin ja avaa harjoitusnäkymän, joka kääntyy automaattisesti vaakaan (ja takaisin pystyyn, kun palataan). Koko kaula mahtuu leveydelle. Yläreunassa yksi rivi: ‹ Circle -nappi, kierto-, sointu- ja merkintävalikot sekä asemalaskuri − 0 + (0 = koko kaula). Valittu asema kirkkaana, muu kaula himmeänä |
 | Sointukierrot | Kvinttiympyrästä valitaan kierto (12-tahtinen blues, pop I–V–vi–IV, jazz ii–V–I, 50-luku I–vi–IV–V). Jokainen sointu on päälle/pois-kytkin, ja otelauta näyttää päällä olevien sointujen arpeggiot |
 | Kierron värit | Väri kuuluu funktiolle (I aina sama väri sävellajista riippumatta). Yhteiset sävelet kaksivärisinä. Kun kaikki soinnut ovat pois päältä, otelauta palaa tavallisiin skaalaväreihin |
 | Premium | Päätetään myöhemmin, kun sovellus on pidemmällä. Ei saa estää käyttöönottoa alussa |

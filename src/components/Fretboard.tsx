@@ -35,6 +35,10 @@ type Props = {
   blueNotes?: number[];
   /** When given, only these cells (see `cellKey`) are shown, e.g. one scale position. */
   visibleCells?: Set<string>;
+  /** When given, notes outside these cells are shown faded, so one area stands out. */
+  focusCells?: Set<string>;
+  /** Width of each fret in pixels; pass a smaller number to fit the whole neck on screen. */
+  fretWidth?: number;
   /** Scroll the neck so this fret is near the left edge. */
   scrollToFret?: number;
   /**
@@ -62,6 +66,8 @@ export default function Fretboard({
   flats = false,
   blueNotes = [],
   visibleCells,
+  focusCells,
+  fretWidth = FRET_WIDTH,
   scrollToFret,
   noteFill,
 }: Props) {
@@ -70,10 +76,12 @@ export default function Fretboard({
   // When the position changes, bring it into view.
   useEffect(() => {
     if (scrollToFret !== undefined) {
-      const x = scrollToFret <= 1 ? 0 : OPEN_WIDTH + (scrollToFret - 2) * FRET_WIDTH;
+      const x = scrollToFret <= 1 ? 0 : OPEN_WIDTH + (scrollToFret - 2) * fretWidth;
       scrollRef.current?.scrollTo({ x, animated: true });
     }
-  }, [scrollToFret]);
+  }, [scrollToFret, fretWidth]);
+
+  const cellWidth = (fret: number) => (fret === 0 ? OPEN_WIDTH : fretWidth);
 
   // Without degree names there is nothing else to show, so fall back to note names.
   const mode = degreeLabels ? labelMode : 'names';
@@ -136,16 +144,24 @@ export default function Fretboard({
                     ]}
                   >
                     {(!visibleCells || visibleCells.has(cellKey(index, fret))) && (
-                      <NoteDot
-                        midi={midi + fret}
-                        highlight={highlight}
-                        mode={mode}
-                        degreeLabels={degreeLabels}
-                        name={noteNames?.[pitchClass(midi + fret)] ?? noteName(midi + fret, flats)}
-                        blueNotes={blueNotes}
-                        fill={noteFill?.[pitchClass(midi + fret)]}
-                        hasFill={noteFill !== undefined}
-                      />
+                      <View
+                        style={
+                          focusCells && !focusCells.has(cellKey(index, fret)) && styles.faded
+                        }
+                      >
+                        <NoteDot
+                          midi={midi + fret}
+                          highlight={highlight}
+                          mode={mode}
+                          degreeLabels={degreeLabels}
+                          name={
+                            noteNames?.[pitchClass(midi + fret)] ?? noteName(midi + fret, flats)
+                          }
+                          blueNotes={blueNotes}
+                          fill={noteFill?.[pitchClass(midi + fret)]}
+                          hasFill={noteFill !== undefined}
+                        />
+                      </View>
                     )}
                   </View>
                 ))}
@@ -230,10 +246,6 @@ function NoteText({ mode, name, degree, color }: NoteTextProps) {
   );
 }
 
-function cellWidth(fret: number) {
-  return fret === 0 ? OPEN_WIDTH : FRET_WIDTH;
-}
-
 const styles = StyleSheet.create({
   wrapper: {
     flexDirection: 'row',
@@ -316,6 +328,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  faded: {
+    opacity: 0.22,
   },
   striped: {
     overflow: 'hidden', // keeps the stripes inside the round shape
