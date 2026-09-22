@@ -32,12 +32,8 @@ export default function ProgressionScreen() {
       <ProgressionPractice
         index={lockedKey.index}
         mode={lockedKey.mode}
-        leading={
-          <>
-            <BackButton label="Circle" />
-            <Text style={styles.key}>{keyName(lockedKey.index, lockedKey.mode)}</Text>
-          </>
-        }
+        back={<BackButton label="Circle" />}
+        title={keyName(lockedKey.index, lockedKey.mode)}
       />
     </View>
   );
@@ -48,12 +44,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     paddingTop: 8,
-  },
-  key: {
-    color: colors.text,
-    fontSize: 17,
-    fontWeight: '700',
-    marginRight: 4,
   },
   empty: {
     flex: 1,

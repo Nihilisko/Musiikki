@@ -50,8 +50,11 @@ type Props = {
 };
 
 const FRET_WIDTH = 46;
-const OPEN_WIDTH = 40;
 const STRING_HEIGHT = 36;
+/** Width of the string-name column on the left. */
+export const LABEL_WIDTH = 44;
+/** Width of the open-string column. */
+export const OPEN_FRET_WIDTH = 40;
 const SINGLE_DOTS = [3, 5, 7, 9, 15, 17, 19, 21];
 const DOUBLE_DOTS = [12, 24];
 
@@ -76,12 +79,12 @@ export default function Fretboard({
   // When the position changes, bring it into view.
   useEffect(() => {
     if (scrollToFret !== undefined) {
-      const x = scrollToFret <= 1 ? 0 : OPEN_WIDTH + (scrollToFret - 2) * fretWidth;
+      const x = scrollToFret <= 1 ? 0 : OPEN_FRET_WIDTH + (scrollToFret - 2) * fretWidth;
       scrollRef.current?.scrollTo({ x, animated: true });
     }
   }, [scrollToFret, fretWidth]);
 
-  const cellWidth = (fret: number) => (fret === 0 ? OPEN_WIDTH : fretWidth);
+  const cellWidth = (fret: number) => (fret === 0 ? OPEN_FRET_WIDTH : fretWidth);
 
   // Without degree names there is nothing else to show, so fall back to note names.
   const mode = degreeLabels ? labelMode : 'names';
@@ -251,6 +254,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   labels: {
+    width: LABEL_WIDTH, // fixed, so the whole fretboard's width can be calculated
     paddingRight: 6,
   },
   labelCell: {

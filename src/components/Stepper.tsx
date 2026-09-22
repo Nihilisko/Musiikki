@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   caption: {
-    color: colors.textMuted,
+    color: '#d6d9de', // faint white: easier to read than grey on the dark button
     fontSize: 10,
   },
 });
