@@ -31,6 +31,7 @@ const ITEMS: Item[] = [
     title: 'Theory notes',
     description: 'Intervals, scales, modes and chords explained, with links to see them.',
     icon: 'book-outline',
+    href: '/notes',
   },
 ];
 

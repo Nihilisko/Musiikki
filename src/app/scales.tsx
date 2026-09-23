@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
@@ -65,9 +65,14 @@ export default function ScalesScreen() {
   const { colors } = useTheme();
   const { tuning } = useInstrument();
   const { noteColors } = useNoteColors();
-  const [root, setRoot] = useState(0); // pitch class, 0 = C
-  const [shapeOption, setShapeOption] = useState(0);
-  const [labelOption, setLabelOption] = useState(0);
+  // Opened from a theory note with a key, a scale (by name) and a label mode to show first.
+  const params = useLocalSearchParams<{ scale?: string; labels?: string; root?: string }>();
+  const [root, setRoot] = useState(() => (Number(params.root) || 0) % 12); // pitch class, 0 = C
+  const [shapeOption, setShapeOption] = useState(() => {
+    const i = SCALES.findIndex((s) => s.name === params.scale);
+    return i >= 0 ? i + 1 : 0;
+  });
+  const [labelOption, setLabelOption] = useState(() => (params.labels === 'degrees' ? 1 : 0));
   const [blueOptions, setBlueOptions] = useState<number[]>([]); // which BLUE_NOTES are on
   const [position, setPosition] = useState(0); // 0 = whole neck
   const { scales: customScales } = useCustomScales();
@@ -139,7 +144,7 @@ export default function ScalesScreen() {
 
   return (
     <FretboardStage
-      back={<BackButton label="Menu" />}
+      back={<BackButton label={params.scale ? 'Back' : 'Menu'} />}
       controls={
         <>
           <KeyPicker root={root} rootName={view.rootName} onChange={setRoot} />
