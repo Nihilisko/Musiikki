@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
+import { useDrone } from '../audio/useDrone';
 import BackButton from '../components/BackButton';
 import Dropdown from '../components/Dropdown';
 import type { Highlight, LabelMode } from '../components/Fretboard';
@@ -75,6 +76,9 @@ export default function ScalesScreen() {
   const [labelOption, setLabelOption] = useState(() => (params.labels === 'degrees' ? 1 : 0));
   const [blueOptions, setBlueOptions] = useState<number[]>([]); // which BLUE_NOTES are on
   const [position, setPosition] = useState(0); // 0 = whole neck
+  // A quiet drone on the key's root, to hear the scale against while practising.
+  const [droneOn, setDroneOn] = useState(false);
+  useDrone({ root, fifth: false, volume: 0.5, playing: droneOn });
   const { scales: customScales } = useCustomScales();
 
   const shapeOptions = [...BUILT_IN_OPTIONS, ...customScales.map((c) => c.name), NEW_SCALE];
@@ -148,6 +152,17 @@ export default function ScalesScreen() {
       controls={
         <>
           <KeyPicker root={root} rootName={view.rootName} onChange={setRoot} />
+          <Pressable
+            onPress={() => setDroneOn((on) => !on)}
+            style={[styles.edit, droneOn && { backgroundColor: colors.brand }]}
+            accessibilityLabel={droneOn ? 'Stop the drone' : 'Play a drone on the root'}
+          >
+            <Ionicons
+              name="radio-outline"
+              size={16}
+              color={droneOn ? colors.onBrand : colors.accentText}
+            />
+          </Pressable>
           <Dropdown
             label={shapeOptions[shapeOption] ?? shapeOptions[0]}
             options={shapeOptions}

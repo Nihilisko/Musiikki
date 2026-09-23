@@ -26,6 +26,7 @@ const TILES: Tile[] = [
   { title: 'CAGED', icon: 'grid', href: '/caged', showFor: supportsCaged },
   { title: 'Theory', icon: 'book', href: '/theory' },
   { title: 'Ear training', icon: 'ear' },
+  { title: 'Backing tracks', icon: 'musical-notes', href: '/backing' },
   { title: 'Tuner', icon: 'pulse', href: '/tuner' },
   { title: 'Metronome', icon: 'timer', href: '/metronome' },
   { title: 'Settings', icon: 'settings', href: '/settings' },

@@ -50,7 +50,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | 8 ✅ | CAGED | Viisi muotoa kaulalla (kaikki tai yksi), kerroksena duuripentatoninen, duuriasteikko tai arpeggio sointumuodon ympärillä. Toimii tavallisessa vireessä ja sen alennetuissa versioissa |
 | 9 ✅ | Teoria | Teoriasivu valikosta. (a) ✅ capo- ja transponointilaskin: soinnut tekstinä (myös H = B), sävellajin tunnistus, transponointi puolisävelaskelin, capo ja helpoimpien capo-paikkojen ehdotukset. (b) ✅ sävellajin soinnut: duuri, molli ja harmoninen molli, kolmi- ja nelisoinnut, funktiot (T/S/D) väreineen, napautus avaa otteet sointukirjassa. (c) ✅ teoriamuistiot: 14 muistiota neljässä osiossa (perusteet, asteikot ja moodit, soinnut, kvinttiympyrä), jokaisessa esimerkki ja linkki oikeaan näkymään |
 | 10 ✅ | Metronomi | Tempo 30–250, tahtilajit (2/4–12/8) korostuksineen, iskuvalot, alajaot, tap tempo, tempon nosto (speed trainer) |
-| 11 | Taustasoitto | Drone, sointukierrot rumpukompeilla, bassolinjat (basso), rämpytyskuviot (ukulele) |
+| 11 | Taustasoitto | Valikon ruutu Backing tracks. (a) ✅ drone: pehmeä urkumainen ääni (itse tehdyt saumattomat silmukat C3–F♯4), kvintti päälle/pois, voimakkuus, pehmeä häivytys; drone-nappi myös skaalasivulla. (b) sointukierrot rumpukompeilla. (c) bassolinjat (basso). (d) rämpytyskuviot (ukulele) |
 | 12 | Korvaharjoitukset | Sävelet, intervallit, sointutyypit, harmonisointi |
 | 13 | Opiskelupeli | Inversiot, harmoniat ja skaalat visuaalisena pelinä |
 | 14 | Viritin | (a) ✅ vintage-mittari, kielen tunnistus valitun vireen mukaan (12-kielisen oktaavikielet erikseen), A4 432–446 Hz. Toimii Expo Gossa expo-audion AudioStreamilla (testattava puhelimessa). (b) slide-intonaatiotreeni myöhemmin |

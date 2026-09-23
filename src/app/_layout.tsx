@@ -105,6 +105,14 @@ function AppStack() {
           }}
         />
         <Stack.Screen
+          name="backing"
+          options={{ title: 'Backing tracks', headerLeft: () => <BackButton label="Menu" /> }}
+        />
+        <Stack.Screen
+          name="drone"
+          options={{ title: 'Drone', headerLeft: () => <BackButton label="Back" /> }}
+        />
+        <Stack.Screen
           name="theory"
           options={{ title: 'Theory', headerLeft: () => <BackButton label="Menu" /> }}
         />
