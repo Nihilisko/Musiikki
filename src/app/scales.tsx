@@ -65,6 +65,12 @@ export default function ScalesScreen() {
   useLandscape(); // sideways while this screen is open
 
   const isArpeggio = shapeOption >= FIRST_ARPEGGIO;
+  const scale = !isArpeggio && shapeOption > 0 ? SCALES[shapeOption - 1] : undefined;
+  // Blue notes that are part of the scale itself (♭5 in minor blues) are always on.
+  const builtInBlue = BLUE_NOTES.flatMap((b, i) =>
+    scale?.blueNotes?.includes(b.interval) ? [i] : [],
+  );
+  const activeBlue = [...new Set([...blueOptions, ...builtInBlue])].sort((a, b) => a - b);
 
   // Scales and chords have different numbers of positions, so start again from the whole neck.
   function selectShape(option: number) {
@@ -72,6 +78,7 @@ export default function ScalesScreen() {
     setPosition(0);
   }
   function toggleBlue(index: number) {
+    if (builtInBlue.includes(index)) return; // part of the scale, can't be turned off
     setBlueOptions((current) =>
       current.includes(index)
         ? current.filter((i) => i !== index)
@@ -79,7 +86,7 @@ export default function ScalesScreen() {
     );
   }
 
-  const blueIntervals = isArpeggio ? [] : blueOptions.map((i) => BLUE_NOTES[i].interval);
+  const blueIntervals = isArpeggio ? [] : activeBlue.map((i) => BLUE_NOTES[i].interval);
   const blueNotes = blueIntervals.map((interval) => pitchClass(root + interval));
   const view = isArpeggio
     ? arpeggioView(tuning.strings, root, shapeOption - FIRST_ARPEGGIO, position)
@@ -88,9 +95,9 @@ export default function ScalesScreen() {
   const focusCells = view.cells && new Set(view.cells.map((c) => cellKey(c.string, c.fret)));
 
   const blueLabel =
-    blueOptions.length === 0
+    activeBlue.length === 0
       ? 'Blue: off'
-      : `Blue: ${blueOptions.map((i) => BLUE_OPTIONS[i]).join(' ')}`;
+      : `Blue: ${activeBlue.map((i) => BLUE_OPTIONS[i]).join(' ')}`;
 
   return (
     <FretboardStage
@@ -113,9 +120,11 @@ export default function ScalesScreen() {
           {!isArpeggio && (
             <Dropdown
               label={blueLabel}
-              options={BLUE_OPTIONS}
+              options={BLUE_OPTIONS.map((label, i) =>
+                builtInBlue.includes(i) ? `${label} (in scale)` : label,
+              )}
               optionColors={BLUE_OPTIONS.map(() => noteColors.blue.background)}
-              selected={blueOptions}
+              selected={activeBlue}
               onSelect={toggleBlue}
               multi
             />

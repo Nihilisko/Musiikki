@@ -4,6 +4,8 @@
 export type Scale = {
   name: string;
   intervals: number[];
+  /** Notes of the scale that are blue notes, so they are always shown in blue (blues scales). */
+  blueNotes?: number[];
 };
 
 export const SCALES: Scale[] = [
@@ -21,8 +23,8 @@ export const SCALES: Scale[] = [
   // Pentatonic and blues
   { name: 'Major pentatonic', intervals: [0, 2, 4, 7, 9] },
   { name: 'Minor pentatonic', intervals: [0, 3, 5, 7, 10] },
-  { name: 'Major blues', intervals: [0, 2, 3, 4, 7, 9] },
-  { name: 'Minor blues', intervals: [0, 3, 5, 6, 7, 10] },
+  { name: 'Major blues', intervals: [0, 2, 3, 4, 7, 9], blueNotes: [3] }, // ♭3
+  { name: 'Minor blues', intervals: [0, 3, 5, 6, 7, 10], blueNotes: [6] }, // ♭5
 ];
 
 /** Pitch class = note without octave, 0-11 (C = 0, C# = 1 ... B = 11). */
