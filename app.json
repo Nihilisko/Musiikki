@@ -23,7 +23,13 @@
     },
     "scheme": "musiikki",
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "ScaleSmith listens to your instrument through the microphone to tune it."
+        }
+      ]
     ]
   }
 }

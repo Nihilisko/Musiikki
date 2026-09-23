@@ -52,7 +52,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | 11 | Taustasoitto | Drone, sointukierrot rumpukompeilla, bassolinjat (basso), rämpytyskuviot (ukulele) |
 | 12 | Korvaharjoitukset | Sävelet, intervallit, sointutyypit, harmonisointi |
 | 13 | Opiskelupeli | Inversiot, harmoniat ja skaalat visuaalisena pelinä |
-| 14 | Viritin | Kaikki vireet, 12-kielisen oktaavikielet erikseen, slide-intonaatiotreeni. Vaatii oman testiversion (APK) |
+| 14 | Viritin | (a) ✅ vintage-mittari, kielen tunnistus valitun vireen mukaan (12-kielisen oktaavikielet erikseen), A4 432–446 Hz. Toimii Expo Gossa expo-audion AudioStreamilla (testattava puhelimessa). (b) slide-intonaatiotreeni myöhemmin |
 | 15 | Suomen kieli | Jos päätetään tehdä |
 | 16 | Premium-päätös | Mitä maksun taakse. Kandidaatti: hidastus, A–B-luuppi, äänitys |
 | 17 | Julkaisu | Tehdään tässä vaiheessa ajantasainen tarkistuslista Play Kauppaan viennistä (Googlen vaatimukset muuttuvat usein). Muistissa jo nyt: tavaramerkkihaku nimelle ScaleSmith (EUIPO, USPTO, Google Play), käynnistyskuva ja sovelluksen sisäinen tunnus (slug "musiikki") |

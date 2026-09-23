@@ -21,7 +21,7 @@ const TILES: Tile[] = [
   { title: 'CAGED', icon: 'grid' },
   { title: 'Theory', icon: 'book' },
   { title: 'Ear training', icon: 'ear' },
-  { title: 'Tuner', icon: 'pulse' },
+  { title: 'Tuner', icon: 'pulse', href: '/tuner' },
   { title: 'Metronome', icon: 'timer', href: '/metronome' },
   { title: 'Settings', icon: 'settings', href: '/settings' },
 ];

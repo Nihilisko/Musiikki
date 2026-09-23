@@ -95,6 +95,10 @@ function AppStack() {
           options={{ title: 'Settings', headerLeft: () => <BackButton label="Menu" /> }}
         />
         <Stack.Screen
+          name="tuner"
+          options={{ title: 'Tuner', headerLeft: () => <BackButton label="Menu" /> }}
+        />
+        <Stack.Screen
           name="metronome"
           options={{ title: 'Metronome', headerLeft: () => <BackButton label="Menu" /> }}
         />
