@@ -105,6 +105,10 @@ function AppStack() {
           }}
         />
         <Stack.Screen
+          name="chords"
+          options={{ title: 'Chords', headerLeft: () => <BackButton label="Menu" /> }}
+        />
+        <Stack.Screen
           name="tuner"
           options={{ title: 'Tuner', headerLeft: () => <BackButton label="Menu" /> }}
         />
