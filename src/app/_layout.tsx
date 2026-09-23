@@ -109,6 +109,10 @@ function AppStack() {
           options={{ title: 'Chords', headerLeft: () => <BackButton label="Menu" /> }}
         />
         <Stack.Screen
+          name="caged"
+          options={{ headerShown: false, animation: 'slide_from_bottom' }}
+        />
+        <Stack.Screen
           name="open-tuning"
           options={{ headerShown: false, animation: 'slide_from_bottom' }}
         />

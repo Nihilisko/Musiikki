@@ -18,7 +18,7 @@ const TILES: Tile[] = [
   { title: 'Scales & arpeggios', icon: 'git-network', href: '/scales' },
   { title: 'Circle of fifths', icon: 'sync-circle', href: '/circle' },
   { title: 'Chords & triads', icon: 'layers', href: '/chords' },
-  { title: 'CAGED', icon: 'grid' },
+  { title: 'CAGED', icon: 'grid', href: '/caged' },
   { title: 'Theory', icon: 'book' },
   { title: 'Ear training', icon: 'ear' },
   { title: 'Tuner', icon: 'pulse', href: '/tuner' },
