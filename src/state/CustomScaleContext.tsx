@@ -10,6 +10,8 @@ type CustomScaleState = {
   scales: CustomScale[];
   /** Saves a new scale and returns its id. */
   addScale: (name: string, intervals: number[]) => string;
+  updateScale: (id: string, name: string, intervals: number[]) => void;
+  removeScale: (id: string) => void;
 };
 
 const STORAGE_KEY = 'custom-scales';
@@ -61,8 +63,20 @@ export function CustomScaleProvider({ children }: { children: ReactNode }) {
     return id;
   }
 
+  function updateScale(id: string, name: string, intervals: number[]) {
+    save(
+      scales.map((s) =>
+        s.id === id ? { ...s, name: name.trim(), intervals: cleanIntervals(intervals) } : s,
+      ),
+    );
+  }
+
+  function removeScale(id: string) {
+    save(scales.filter((s) => s.id !== id));
+  }
+
   return (
-    <CustomScaleContext.Provider value={{ scales, addScale }}>
+    <CustomScaleContext.Provider value={{ scales, addScale, updateScale, removeScale }}>
       {children}
     </CustomScaleContext.Provider>
   );

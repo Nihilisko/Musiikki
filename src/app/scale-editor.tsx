@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -19,10 +19,15 @@ const MIN_NOTES = 3;
 // Opened from the scale screen, which keeps the phone sideways while this is on top of it.
 export default function ScaleEditorScreen() {
   const styles = useThemedStyles(makeStyles);
-  const { addScale } = useCustomScales();
+  const { scales, addScale, updateScale, removeScale } = useCustomScales();
+  // With an id the editor changes that scale; without one it makes a new scale.
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const editing = scales.find((s) => s.id === id);
   const [root, setRoot] = useState(0); // only for the preview; the scale works in every key
-  const [name, setName] = useState('');
-  const [intervals, setIntervals] = useState<number[]>([0]);
+  const [name, setName] = useState(editing?.name ?? '');
+  const [intervals, setIntervals] = useState<number[]>(editing?.intervals ?? [0]);
+  // Deleting takes two taps, so a scale isn't lost by accident.
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const scale: Scale = { name: name.trim() || 'New scale', intervals };
   const spelled = spellScale(root, scale);
@@ -39,7 +44,21 @@ export default function ScaleEditorScreen() {
 
   function save() {
     if (!canSave) return;
-    addScale(name, intervals);
+    if (editing) {
+      updateScale(editing.id, name, intervals);
+    } else {
+      addScale(name, intervals);
+    }
+    router.back();
+  }
+
+  function remove() {
+    if (!editing) return;
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    removeScale(editing.id);
     router.back();
   }
 
@@ -58,6 +77,17 @@ export default function ScaleEditorScreen() {
             placeholderTextColor={styles.placeholder.color}
             returnKeyType="done"
           />
+          {editing && (
+            <Pressable
+              onPress={remove}
+              style={[styles.delete, confirmDelete && styles.deleteConfirm]}
+              accessibilityLabel={confirmDelete ? 'Tap again to delete the scale' : 'Delete scale'}
+            >
+              <Text style={[styles.deleteText, confirmDelete && styles.deleteTextConfirm]}>
+                {confirmDelete ? 'Tap again to delete' : 'Delete'}
+              </Text>
+            </Pressable>
+          )}
           <Pressable
             onPress={save}
             disabled={!canSave}
@@ -131,6 +161,24 @@ function makeStyles(colors: Colors) {
     },
     placeholder: {
       color: colors.textMuted,
+    },
+    delete: {
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      borderRadius: 16,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+    },
+    deleteConfirm: {
+      borderColor: colors.brand,
+    },
+    deleteText: {
+      color: colors.textMuted,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    deleteTextConfirm: {
+      color: colors.brand,
     },
     save: {
       paddingVertical: 8,

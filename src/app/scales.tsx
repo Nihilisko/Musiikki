@@ -1,6 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 
 import BackButton from '../components/BackButton';
 import Dropdown from '../components/Dropdown';
@@ -25,7 +26,7 @@ import { useLandscape } from '../state/orientation';
 import { useCustomScales } from '../state/CustomScaleContext';
 import { useNoteColors } from '../state/NoteColorContext';
 import type { Colors } from '../theme/colors';
-import { useThemedStyles } from '../theme/ThemeContext';
+import { useTheme, useThemedStyles } from '../theme/ThemeContext';
 
 // One list for everything the fretboard can show: all notes, the scales, the arpeggios,
 // then the user's own scales and a "+ New scale" item at the end.
@@ -61,6 +62,7 @@ type FretboardView = {
 // Scales and arpeggios on the whole neck, turned sideways like the practice view.
 export default function ScalesScreen() {
   const styles = useThemedStyles(makeStyles);
+  const { colors } = useTheme();
   const { tuning } = useInstrument();
   const { noteColors } = useNoteColors();
   const [root, setRoot] = useState(0); // pitch class, 0 = C
@@ -73,15 +75,21 @@ export default function ScalesScreen() {
   const shapeOptions = [...BUILT_IN_OPTIONS, ...customScales.map((c) => c.name), NEW_SCALE];
   const newScaleOption = shapeOptions.length - 1;
 
-  // When a scale has just been made in the editor, show it straight away.
+  // When a scale has just been made in the editor, show it straight away; when one has been
+  // deleted, go back to all notes (the menu's order has changed).
   const customCount = useRef(customScales.length);
   useEffect(() => {
     if (customScales.length > customCount.current) {
       setShapeOption(FIRST_CUSTOM + customScales.length - 1);
       setPosition(0);
+    } else if (customScales.length < customCount.current) {
+      setShapeOption(0);
+      setPosition(0);
     }
     customCount.current = customScales.length;
   }, [customScales.length]);
+  const selectedCustom =
+    shapeOption >= FIRST_CUSTOM ? customScales[shapeOption - FIRST_CUSTOM] : undefined;
 
   useLandscape(); // sideways while this screen is open
 
@@ -142,6 +150,17 @@ export default function ScalesScreen() {
             onSelect={selectShape}
             headers={{ [FIRST_CUSTOM]: 'My scales' }}
           />
+          {selectedCustom && (
+            <Pressable
+              onPress={() =>
+                router.push({ pathname: '/scale-editor', params: { id: selectedCustom.id } })
+              }
+              style={styles.edit}
+              accessibilityLabel={`Edit ${selectedCustom.name}`}
+            >
+              <Ionicons name="pencil" size={16} color={colors.accentText} />
+            </Pressable>
+          )}
           <Dropdown
             label={LABEL_OPTIONS[labelOption]}
             options={LABEL_OPTIONS}
@@ -259,6 +278,15 @@ function makeStyles(colors: Colors) {
     title: {
       color: colors.text,
       fontWeight: '700',
+    },
+    edit: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 16,
+      backgroundColor: colors.surface,
     },
     notes: {
       color: colors.accentText,

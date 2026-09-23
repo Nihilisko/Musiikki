@@ -44,7 +44,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | 3c ✅ | Muistaminen | Soitin ja vire tallentuvat, avaus suoraan valikkoon |
 | 4 ✅ | Skaalojen syventäminen | (a) ✅ nimet/asteet, (b) ✅ oikeat ♭/# -nimet sävellajin mukaan, (c) ✅ blue notes, (d) ✅ asemat: pentatonisen boksit ja 3 säveltä kielellä, (e) ✅ arpeggiot, (f) ✅ kvinttiympyrä ja sointukierrot otelaudalla |
 | 5 ✅ | Asetukset | (a) ✅ asetussivu ja teema, (brändi) ✅ nimi, logo ja sovelluskuvake (käynnistyskuva ja brändivärit koodiin myöhemmin), (b) ✅ otelaudan puulaji, (c) ✅ sävelten värit. Valinnat tallentuvat |
-| 6 | Omat skaalat | Luo, muokkaa, poista |
+| 6 ✅ | Omat skaalat | Luo (12 astenappia, nimi, esikatselu otelaudalla), muokkaa (kynäkuvake skaalasivulla), poista (kaksi napautusta). Näkyvät skaalavalikossa otsikon "My scales" alla; 5 ja 7 sävelen skaaloilla asemat |
 | 7 | Soinnut | Triadit, inversiot, sointukirjasto otteineen (ukulele). Avoimen virityksen sointukartta (sikarilaatikko, slide) |
 | 8 | CAGED | Viisi muotoa kitaralle |
 | 9 | Teoria | Teoriamuistiot (linkki kvinttiympyrään), sävellajin soinnut, capo- ja transponointilaskin (kitara, 12-kielinen) |
