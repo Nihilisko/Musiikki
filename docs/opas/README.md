@@ -19,6 +19,7 @@ Nämä tiedostot selittävät sovelluksen koodin vaihe vaiheelta. Jokaisessa luv
 | 5 | [Teoriamoottori](05-teoriamoottori.md) | Asteet, oikeat nimet, asemat, arpeggiot, kvinttiympyrä, SVG, refaktorointi |
 | 6 | [Teema, vaakanäkymät ja brändi](06-teema-ja-brandi.md) | Väriroolit, teeman valinta, useMemo, siivousfunktio, yhteinen asettelu, logo ja kuvake |
 | 7 | [Ääni: metronomi ja viritin](07-aani-metronomi-viritin.md) | expo-audio, ajoitus tavoiteajasta, useRef, YIN-tunnistus, sentit, mediaani, saavutettavuus |
+| 8 | [Omat skaalat, soinnut, triadit ja avoimet vireet](08-soinnut-ja-omat-skaalat.md) | Tietorakenteet, rekursiivinen haku, pisteytys, käännökset, datan tarkistus |
 
 ## Sovelluksen ajaminen
 
@@ -41,4 +42,5 @@ npx tsc --noEmit   # tarkistaa tyypit: löytää virheet ennen kuin sovellus kaa
 | **Siivousfunktio** | Funktio, jonka `useEffect` palauttaa. React kutsuu sitä, kun ruutu suljetaan |
 | **Sentti** | Sadasosa puolisävelaskelta. Viritin kertoo poikkeaman sentteinä |
 | **useRef** | "Laatikko", jonka sisältöä voi vaihtaa piirtämättä ruutua uudelleen |
+| **Rekursio** | Funktio, joka kutsuu itseään pienemmälle osaongelmalle, esim. kieli kerrallaan |
 | **JSX** | HTML:ää muistuttava merkintätapa JavaScriptin sisällä: `<Text>Hei</Text>` |
