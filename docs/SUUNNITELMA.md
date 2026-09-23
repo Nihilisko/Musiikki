@@ -48,7 +48,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | 7 | Soinnut | Triadit, inversiot, sointukirjasto otteineen (ukulele). Avoimen virityksen sointukartta (sikarilaatikko, slide) |
 | 8 | CAGED | Viisi muotoa kitaralle |
 | 9 | Teoria | Teoriamuistiot (linkki kvinttiympyrään), sävellajin soinnut, capo- ja transponointilaskin (kitara, 12-kielinen) |
-| 10 | Metronomi | Tempo, tahtilaji, korostukset |
+| 10 ✅ | Metronomi | Tempo 30–250, tahtilajit (2/4–12/8) korostuksineen, iskuvalot, alajaot, tap tempo, tempon nosto (speed trainer) |
 | 11 | Taustasoitto | Drone, sointukierrot rumpukompeilla, bassolinjat (basso), rämpytyskuviot (ukulele) |
 | 12 | Korvaharjoitukset | Sävelet, intervallit, sointutyypit, harmonisointi |
 | 13 | Opiskelupeli | Inversiot, harmoniat ja skaalat visuaalisena pelinä |
