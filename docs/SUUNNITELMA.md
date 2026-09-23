@@ -29,6 +29,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | Brändivärit | Hot rod -punainen #d42330, kerma #fbf1dc, varjo #5a0a10 |
 | Sovelluksen värit | Lämmin teema logon mukaan: tumma = paahdettu puu (#15110f), vaalea = kerma (#f6eedf). Valinnat kermalla (tumma) tai tummanruskealla (vaalea). Brändipunainen vain logossa ja pääpainikkeissa (esim. Lock). Pohjasävel pysyy punaisena otelaudalla |
 | Virittimen ulkoasu | Vintage-auton nopeusmittarin näköinen: kermanvärinen taulu, kromireunus, mustat serif-numerot ja punainen neula. Neula näyttää, montako senttiä sävel on vireestä (vasen = matala, keskellä = vireessä, oikea = korkea). Matkamittarin ikkunassa näkyy sävelen nimi, ja sen valo vaihtuu punaisesta vihreään sitä mukaa, kun vire lähestyy oikeaa. Idea käyttäjän kuvasta (Classic Instruments -mittari), mutta ulkoasu piirretään omaksi |
+| Soitinkohtaiset näkymät | Toiminto näkyy vain, jos se pätee valittuun soittimeen ja vireeseen: CAGED-ruutu vain tavallisessa vireessä (ja sen alennetuissa versioissa), avoimen virityksen kartta vain avoimissa vireissä |
 | Premium | Päätetään myöhemmin, kun sovellus on pidemmällä. Ei saa estää käyttöönottoa alussa |
 | Ei tehdä | Tabieditori, biisikirjasto, videotunnit |
 

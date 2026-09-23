@@ -4,6 +4,8 @@ import type { ComponentProps } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import Wordmark from '../components/Wordmark';
+import { supportsCaged } from '../music/caged';
+import { useInstrument } from '../state/InstrumentContext';
 import type { Colors } from '../theme/colors';
 import { useTheme, useThemedStyles } from '../theme/ThemeContext';
 
@@ -12,13 +14,16 @@ type Tile = {
   icon: ComponentProps<typeof Ionicons>['name'];
   /** Screen to open; tiles without one are not built yet. */
   href?: Href;
+  /** Only shown when this is true for the chosen tuning (open strings, lowest first). */
+  showFor?: (strings: number[]) => boolean;
 };
 
 const TILES: Tile[] = [
   { title: 'Scales & arpeggios', icon: 'git-network', href: '/scales' },
   { title: 'Circle of fifths', icon: 'sync-circle', href: '/circle' },
   { title: 'Chords & triads', icon: 'layers', href: '/chords' },
-  { title: 'CAGED', icon: 'grid', href: '/caged' },
+  // CAGED is built on standard tuning's string gaps, so it only appears for those tunings.
+  { title: 'CAGED', icon: 'grid', href: '/caged', showFor: supportsCaged },
   { title: 'Theory', icon: 'book' },
   { title: 'Ear training', icon: 'ear' },
   { title: 'Tuner', icon: 'pulse', href: '/tuner' },
@@ -30,13 +35,15 @@ const TILES: Tile[] = [
 export default function HomeScreen() {
   const { colors } = useTheme();
   const styles = useThemedStyles(makeStyles);
+  const { tuning } = useInstrument();
+  const tiles = TILES.filter((tile) => !tile.showFor || tile.showFor(tuning.strings));
   return (
     <ScrollView contentContainerStyle={styles.grid}>
       {/* Takes a whole row, so the tiles start below it. */}
       <View style={styles.logo}>
         <Wordmark height={52} />
       </View>
-      {TILES.map((tile) => {
+      {tiles.map((tile) => {
         const ready = tile.href !== undefined;
         return (
           <Pressable
