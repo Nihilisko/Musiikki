@@ -24,7 +24,7 @@ const TILES: Tile[] = [
   { title: 'Chords & triads', icon: 'layers', href: '/chords' },
   // CAGED is built on standard tuning's string gaps, so it only appears for those tunings.
   { title: 'CAGED', icon: 'grid', href: '/caged', showFor: supportsCaged },
-  { title: 'Theory', icon: 'book' },
+  { title: 'Theory', icon: 'book', href: '/theory' },
   { title: 'Ear training', icon: 'ear' },
   { title: 'Tuner', icon: 'pulse', href: '/tuner' },
   { title: 'Metronome', icon: 'timer', href: '/metronome' },

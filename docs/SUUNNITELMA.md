@@ -48,7 +48,7 @@ Muusikon harjoitussovellus kielisoittimille. Tavoite: keskitason soittaja ei tar
 | 6 ✅ | Omat skaalat | Luo (12 astenappia, nimi, esikatselu otelaudalla), muokkaa (kynäkuvake skaalasivulla), poista (kaksi napautusta). Näkyvät skaalavalikossa otsikon "My scales" alla; 5 ja 7 sävelen skaaloilla asemat |
 | 7 ✅ | Soinnut | (a) ✅ sointukirjasto: otteet lasketaan mille tahansa soittimelle ja vireelle, sointukaaviot (nimet/asteet, värit roolin mukaan, barre). (b) ✅ triadit ja inversiot: vaakanäkymä Chords-sivulta, kieliryhmät, käännössuodatin, muodon korostus − 0 +. (c) ✅ avoimen virityksen sointukartta: nappi Chords-sivulla vain avoimissa vireissä, sävellajin soinnut palkkeina (I–IV–V tai kaikki), mollin terssikielet pisteinä, kolmikielisissä kvinttisointu |
 | 8 ✅ | CAGED | Viisi muotoa kaulalla (kaikki tai yksi), kerroksena duuripentatoninen, duuriasteikko tai arpeggio sointumuodon ympärillä. Toimii tavallisessa vireessä ja sen alennetuissa versioissa |
-| 9 | Teoria | Teoriamuistiot (linkki kvinttiympyrään), sävellajin soinnut, capo- ja transponointilaskin (kitara, 12-kielinen) |
+| 9 | Teoria | Teoriasivu valikosta. (a) ✅ capo- ja transponointilaskin: soinnut tekstinä (myös H = B), sävellajin tunnistus, transponointi puolisävelaskelin, capo ja helpoimpien capo-paikkojen ehdotukset. (b) sävellajin soinnut (kolmi- ja nelisoinnut). (c) teoriamuistiot linkkeineen |
 | 10 ✅ | Metronomi | Tempo 30–250, tahtilajit (2/4–12/8) korostuksineen, iskuvalot, alajaot, tap tempo, tempon nosto (speed trainer) |
 | 11 | Taustasoitto | Drone, sointukierrot rumpukompeilla, bassolinjat (basso), rämpytyskuviot (ukulele) |
 | 12 | Korvaharjoitukset | Sävelet, intervallit, sointutyypit, harmonisointi |

@@ -105,6 +105,14 @@ function AppStack() {
           }}
         />
         <Stack.Screen
+          name="theory"
+          options={{ title: 'Theory', headerLeft: () => <BackButton label="Menu" /> }}
+        />
+        <Stack.Screen
+          name="transpose"
+          options={{ title: 'Capo & transpose', headerLeft: () => <BackButton label="Theory" /> }}
+        />
+        <Stack.Screen
           name="chords"
           options={{ title: 'Chords', headerLeft: () => <BackButton label="Menu" /> }}
         />
