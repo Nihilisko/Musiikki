@@ -9,6 +9,7 @@ import KeyPicker from '../components/KeyPicker';
 import { CHORD_TYPES } from '../music/chords';
 import { pitchClass } from '../music/scales';
 import { spellChord } from '../music/spelling';
+import { tuningChord } from '../music/openTuning';
 import { chordVoicings } from '../music/voicings';
 import { useInstrument } from '../state/InstrumentContext';
 import { useNoteColors } from '../state/NoteColorContext';
@@ -62,6 +63,18 @@ export default function ChordsScreen() {
         <Text style={styles.triadsText}>Triads & inversions</Text>
         <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
       </Pressable>
+
+      {/* Only for tunings whose open strings make a chord (Open G, cigar box...). */}
+      {tuningChord(tuning.strings) && (
+        <Pressable
+          onPress={() => router.push('/open-tuning')}
+          style={({ pressed }) => [styles.triads, pressed && { opacity: 0.7 }]}
+        >
+          <Ionicons name="reorder-four-outline" size={18} color={colors.accentText} />
+          <Text style={styles.triadsText}>Open tuning map</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+        </Pressable>
+      )}
 
       <View style={styles.row}>
         <KeyPicker root={root} rootName={spelled.rootName} onChange={setRoot} />
