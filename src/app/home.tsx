@@ -22,7 +22,7 @@ const TILES: Tile[] = [
   { title: 'Theory', icon: 'book' },
   { title: 'Ear training', icon: 'ear' },
   { title: 'Tuner', icon: 'pulse' },
-  { title: 'Metronome', icon: 'timer' },
+  { title: 'Metronome', icon: 'timer', href: '/metronome' },
   { title: 'Settings', icon: 'settings', href: '/settings' },
 ];
 

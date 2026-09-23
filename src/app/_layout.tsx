@@ -94,6 +94,10 @@ function AppStack() {
           name="settings"
           options={{ title: 'Settings', headerLeft: () => <BackButton label="Menu" /> }}
         />
+        <Stack.Screen
+          name="metronome"
+          options={{ title: 'Metronome', headerLeft: () => <BackButton label="Menu" /> }}
+        />
       </Stack>
     </NavigationThemeProvider>
   );
