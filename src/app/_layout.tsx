@@ -12,6 +12,7 @@ import BackButton from '../components/BackButton';
 import InstrumentButton from '../components/InstrumentButton';
 import { InstrumentProvider } from '../state/InstrumentContext';
 import { KeyProvider } from '../state/KeyContext';
+import { CustomScaleProvider } from '../state/CustomScaleContext';
 import { NoteColorProvider } from '../state/NoteColorContext';
 import { WoodProvider } from '../state/WoodContext';
 import { lockPortrait } from '../state/orientation';
@@ -27,7 +28,9 @@ export default function RootLayout() {
         <KeyProvider>
           <WoodProvider>
             <NoteColorProvider>
-              <AppStack />
+              <CustomScaleProvider>
+                <AppStack />
+              </CustomScaleProvider>
             </NoteColorProvider>
           </WoodProvider>
         </KeyProvider>
@@ -93,6 +96,13 @@ function AppStack() {
         <Stack.Screen
           name="settings"
           options={{ title: 'Settings', headerLeft: () => <BackButton label="Menu" /> }}
+        />
+        <Stack.Screen
+          name="scale-editor"
+          options={{
+            headerShown: false, // sideways like the scale screen, with its own buttons
+            animation: 'slide_from_bottom',
+          }}
         />
         <Stack.Screen
           name="tuner"

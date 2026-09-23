@@ -24,6 +24,8 @@ type Props = {
   multi?: boolean;
   /** Background colour for each option when it is on (e.g. chord colours). */
   optionColors?: string[];
+  /** Small headings shown above some options, by option index, e.g. { 27: 'My scales' }. */
+  headers?: Record<number, string>;
 };
 
 /**
@@ -37,6 +39,7 @@ export default function Dropdown({
   onSelect,
   multi,
   optionColors,
+  headers,
 }: Props) {
   const { colors } = useTheme();
   const styles = useThemedStyles(makeStyles);
@@ -92,24 +95,26 @@ export default function Dropdown({
                 // Chord colours are dark enough for white text; the accent has its own text colour.
                 const onText = optionColors ? '#ffffff' : colors.onAccent;
                 return (
-                  <Pressable
-                    key={option}
-                    onPress={() => choose(i)}
-                    style={[styles.option, on && { backgroundColor: color }]}
-                  >
-                    {multi && (
-                      <Ionicons
-                        name={on ? 'checkbox' : 'square-outline'}
-                        size={18}
-                        color={on ? onText : colors.textMuted}
-                      />
-                    )}
-                    <Text
-                      style={[styles.optionText, on && [styles.optionTextOn, { color: onText }]]}
+                  <View key={`${i}-${option}`}>
+                    {headers?.[i] !== undefined && <Text style={styles.header}>{headers[i]}</Text>}
+                    <Pressable
+                      onPress={() => choose(i)}
+                      style={[styles.option, on && { backgroundColor: color }]}
                     >
-                      {option}
-                    </Text>
-                  </Pressable>
+                      {multi && (
+                        <Ionicons
+                          name={on ? 'checkbox' : 'square-outline'}
+                          size={18}
+                          color={on ? onText : colors.textMuted}
+                        />
+                      )}
+                      <Text
+                        style={[styles.optionText, on && [styles.optionTextOn, { color: onText }]]}
+                      >
+                        {option}
+                      </Text>
+                    </Pressable>
+                  </View>
                 );
               })}
             </ScrollView>
@@ -137,6 +142,18 @@ function makeStyles(colors: Colors) {
       fontSize: 14,
       fontWeight: '600',
       flexShrink: 1,
+    },
+    header: {
+      color: colors.textMuted,
+      fontSize: 11,
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      paddingHorizontal: 14,
+      paddingTop: 10,
+      paddingBottom: 4,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
     },
     list: {
       position: 'absolute',

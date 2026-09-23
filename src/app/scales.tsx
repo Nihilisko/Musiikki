@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { router } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 
 import BackButton from '../components/BackButton';
@@ -17,21 +18,25 @@ import {
   scalePosition,
   type Cell,
 } from '../music/positions';
-import { pitchClass, SCALES, scalePitchClasses } from '../music/scales';
+import { pitchClass, SCALES, scalePitchClasses, type Scale } from '../music/scales';
 import { spellChord, spellScale } from '../music/spelling';
 import { useInstrument } from '../state/InstrumentContext';
 import { useLandscape } from '../state/orientation';
+import { useCustomScales } from '../state/CustomScaleContext';
 import { useNoteColors } from '../state/NoteColorContext';
 import type { Colors } from '../theme/colors';
 import { useThemedStyles } from '../theme/ThemeContext';
 
-// One list for everything the fretboard can show: all notes, the scales, then the arpeggios.
-const SHAPE_OPTIONS = [
+// One list for everything the fretboard can show: all notes, the scales, the arpeggios,
+// then the user's own scales and a "+ New scale" item at the end.
+const BUILT_IN_OPTIONS = [
   'All notes',
   ...SCALES.map((s) => s.name),
   ...CHORD_TYPES.map((c) => `${c.name} arpeggio`),
 ];
 const FIRST_ARPEGGIO = 1 + SCALES.length;
+const FIRST_CUSTOM = BUILT_IN_OPTIONS.length;
+const NEW_SCALE = '+ New scale';
 
 const LABEL_MODES: LabelMode[] = ['names', 'degrees', 'both'];
 const LABEL_OPTIONS = ['Names', 'Degrees', 'Both'];
@@ -63,11 +68,30 @@ export default function ScalesScreen() {
   const [labelOption, setLabelOption] = useState(0);
   const [blueOptions, setBlueOptions] = useState<number[]>([]); // which BLUE_NOTES are on
   const [position, setPosition] = useState(0); // 0 = whole neck
+  const { scales: customScales } = useCustomScales();
+
+  const shapeOptions = [...BUILT_IN_OPTIONS, ...customScales.map((c) => c.name), NEW_SCALE];
+  const newScaleOption = shapeOptions.length - 1;
+
+  // When a scale has just been made in the editor, show it straight away.
+  const customCount = useRef(customScales.length);
+  useEffect(() => {
+    if (customScales.length > customCount.current) {
+      setShapeOption(FIRST_CUSTOM + customScales.length - 1);
+      setPosition(0);
+    }
+    customCount.current = customScales.length;
+  }, [customScales.length]);
 
   useLandscape(); // sideways while this screen is open
 
-  const isArpeggio = shapeOption >= FIRST_ARPEGGIO;
-  const scale = !isArpeggio && shapeOption > 0 ? SCALES[shapeOption - 1] : undefined;
+  const isArpeggio = shapeOption >= FIRST_ARPEGGIO && shapeOption < FIRST_CUSTOM;
+  const scale: Scale | undefined =
+    shapeOption >= FIRST_CUSTOM
+      ? customScales[shapeOption - FIRST_CUSTOM]
+      : !isArpeggio && shapeOption > 0
+        ? SCALES[shapeOption - 1]
+        : undefined;
   // Blue notes that are part of the scale itself (♭5 in minor blues) are always on.
   const builtInBlue = BLUE_NOTES.flatMap((b, i) =>
     scale?.blueNotes?.includes(b.interval) ? [i] : [],
@@ -76,6 +100,10 @@ export default function ScalesScreen() {
 
   // Scales and chords have different numbers of positions, so start again from the whole neck.
   function selectShape(option: number) {
+    if (option === newScaleOption) {
+      router.push('/scale-editor');
+      return;
+    }
     setShapeOption(option);
     setPosition(0);
   }
@@ -92,7 +120,7 @@ export default function ScalesScreen() {
   const blueNotes = blueIntervals.map((interval) => pitchClass(root + interval));
   const view = isArpeggio
     ? arpeggioView(tuning.strings, root, shapeOption - FIRST_ARPEGGIO, position)
-    : scaleView(tuning.strings, root, shapeOption, position, blueIntervals);
+    : scaleView(tuning.strings, root, scale, position, blueIntervals);
   // A position lights up its notes and fades the rest of the neck, so nothing moves.
   const focusCells = view.cells && new Set(view.cells.map((c) => cellKey(c.string, c.fret)));
 
@@ -108,10 +136,11 @@ export default function ScalesScreen() {
         <>
           <KeyPicker root={root} rootName={view.rootName} onChange={setRoot} />
           <Dropdown
-            label={SHAPE_OPTIONS[shapeOption]}
-            options={SHAPE_OPTIONS}
+            label={shapeOptions[shapeOption] ?? shapeOptions[0]}
+            options={shapeOptions}
             selected={shapeOption}
             onSelect={selectShape}
+            headers={{ [FIRST_CUSTOM]: 'My scales' }}
           />
           <Dropdown
             label={LABEL_OPTIONS[labelOption]}
@@ -168,11 +197,10 @@ export default function ScalesScreen() {
 function scaleView(
   strings: number[],
   root: number,
-  option: number,
+  scale: Scale | undefined,
   position: number,
   blueIntervals: number[],
 ): FretboardView {
-  const scale = option > 0 ? SCALES[option - 1] : undefined;
   const spelled = spellScale(root, scale, blueIntervals);
   if (!scale) {
     return {

@@ -6,7 +6,7 @@ import { pitchClass, type Scale } from './scales';
 const MAJOR_STEPS = [0, 2, 4, 5, 7, 9, 11];
 
 /** Names for all 12 semitones above the root, used when the scale gives no better answer. */
-const CHROMATIC_DEGREES = ['1', '♭2', '2', '♭3', '3', '4', '♭5', '5', '♭6', '6', '♭7', '7'];
+export const CHROMATIC_DEGREES = ['1', '♭2', '2', '♭3', '3', '4', '♭5', '5', '♭6', '6', '♭7', '7'];
 
 /**
  * Degree name for a note `interval` semitones above the root.

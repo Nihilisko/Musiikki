@@ -20,6 +20,8 @@ type Props = {
   >;
   /** A line under the fretboard, e.g. "C major · C7 arpeggio". */
   status?: ReactNode;
+  /** Anything under the status line, e.g. the scale editor's degree buttons. */
+  footer?: ReactNode;
 };
 
 /** Side padding around the fretboard. */
@@ -34,7 +36,7 @@ const WIDE_SCREEN = 900;
  * one row of controls on top (back button at the left, the rest centred)
  * and the whole neck centred below, sized to fit the screen width.
  */
-export default function FretboardStage({ back, controls, fretboard, status }: Props) {
+export default function FretboardStage({ back, controls, fretboard, status, footer }: Props) {
   const styles = useThemedStyles(makeStyles);
   const { instrument, tuning } = useInstrument();
   const { wood } = useWood();
@@ -76,6 +78,7 @@ export default function FretboardStage({ back, controls, fretboard, status }: Pr
             noteColors={noteColors}
           />
           {status !== undefined && <Text style={styles.status}>{status}</Text>}
+          {footer}
         </View>
       </View>
     </View>
