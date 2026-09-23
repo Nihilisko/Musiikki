@@ -11,21 +11,31 @@ type Props = {
   onChange: (value: number) => void;
   /** Small text under the number, e.g. "Whole neck". */
   caption: string;
+  /** How much one press changes the value. */
+  step?: number;
 };
 
 /** A − value + counter. The buttons stop at `min` and `max`. */
-export default function Stepper({ value, min, max, onChange, caption }: Props) {
+export default function Stepper({ value, min, max, onChange, caption, step = 1 }: Props) {
   const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.stepper}>
-      <StepButton icon="remove" disabled={value <= min} onPress={() => onChange(value - 1)} />
+      <StepButton
+        icon="remove"
+        disabled={value <= min}
+        onPress={() => onChange(Math.max(min, value - step))}
+      />
       <View style={styles.middle}>
         <Text style={styles.value}>{value}</Text>
         <Text style={styles.caption} numberOfLines={1}>
           {caption}
         </Text>
       </View>
-      <StepButton icon="add" disabled={value >= max} onPress={() => onChange(value + 1)} />
+      <StepButton
+        icon="add"
+        disabled={value >= max}
+        onPress={() => onChange(Math.min(max, value + step))}
+      />
     </View>
   );
 }

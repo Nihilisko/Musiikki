@@ -37,3 +37,37 @@ export function clampBpm(bpm: number): number {
 export function beatInterval(bpm: number): number {
   return 60000 / bpm;
 }
+
+/** Extra clicks between the beats. `count` = clicks per beat, the beat itself included. */
+export type Subdivision = { label: string; count: number };
+
+export const SUBDIVISIONS: Subdivision[] = [
+  { label: 'Off', count: 1 },
+  { label: '8ths', count: 2 },
+  { label: 'Triplets', count: 3 },
+  { label: '16ths', count: 4 },
+];
+
+/** Speed trainer: raise the tempo by `step` BPM every `everyBars` bars, up to `target`. */
+export type TempoRamp = { step: number; everyBars: number; target: number };
+
+/** The tempo after a ramp step, never past the target. */
+export function rampedBpm(bpm: number, ramp: TempoRamp): number {
+  return Math.min(ramp.target, bpm + ramp.step);
+}
+
+/** Taps further apart than this start a new count. */
+export const TAP_RESET_MS = 2000;
+/** How many of the latest taps are averaged. */
+const TAPS_AVERAGED = 4;
+
+/**
+ * Tempo from tap times (milliseconds, oldest first), or null with fewer than two taps.
+ * Averages the gaps between the last few taps, so one uneven tap doesn't throw it off.
+ */
+export function tapTempo(times: number[]): number | null {
+  const recent = times.slice(-TAPS_AVERAGED - 1);
+  if (recent.length < 2) return null;
+  const average = (recent[recent.length - 1] - recent[0]) / (recent.length - 1);
+  return clampBpm(60000 / average);
+}
