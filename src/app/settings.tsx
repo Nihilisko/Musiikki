@@ -2,10 +2,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import WoodGrain from '../components/WoodGrain';
+import { useNoteColors } from '../state/NoteColorContext';
 import { useWood } from '../state/WoodContext';
 import type { Colors } from '../theme/colors';
 import { useTheme, useThemedStyles, type ThemePreference } from '../theme/ThemeContext';
+import { NOTE_PALETTE, type NoteRole } from '../theme/noteColors';
 import { WOODS } from '../theme/woods';
+
+const NOTE_ROLES: { role: NoteRole; title: string; sample: string }[] = [
+  { role: 'root', title: 'Root note', sample: '1' },
+  { role: 'scale', title: 'Scale notes', sample: '5' },
+  { role: 'blue', title: 'Blue notes', sample: '♭5' },
+];
 
 const THEME_OPTIONS: { value: ThemePreference; title: string; description: string }[] = [
   {
@@ -21,6 +29,7 @@ export default function SettingsScreen() {
   const { colors, preference, setPreference } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const { wood: currentWood, setWood } = useWood();
+  const { choice, noteColors, setRoleColor, reset } = useNoteColors();
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
@@ -81,7 +90,50 @@ export default function SettingsScreen() {
         })}
       </View>
 
-      <Text style={styles.note}>Coming next: note colours.</Text>
+      <View style={[styles.sectionHeader, styles.nextSection]}>
+        <Text style={styles.sectionLabel}>Note colours</Text>
+        <Pressable onPress={reset} hitSlop={8}>
+          <Text style={styles.reset}>Reset</Text>
+        </Pressable>
+      </View>
+      <View style={styles.group}>
+        {NOTE_ROLES.map(({ role, title, sample }, i) => (
+          <View key={role} style={[styles.colorRow, i > 0 && styles.rowDivider]}>
+            <View style={styles.colorTitle}>
+              {/* The note as it looks on the fretboard */}
+              <View style={[styles.sampleNote, { backgroundColor: noteColors[role].background }]}>
+                <Text style={[styles.sampleNoteText, { color: noteColors[role].text }]}>
+                  {sample}
+                </Text>
+              </View>
+              <Text style={styles.title}>{title}</Text>
+            </View>
+            <View style={styles.swatches}>
+              {NOTE_PALETTE.map((color) => {
+                const selected = choice[role] === color.id;
+                // A colour used by another role can't be picked, so the notes stay apart.
+                const taken = !selected && Object.values(choice).includes(color.id);
+                return (
+                  <Pressable
+                    key={color.id}
+                    disabled={taken}
+                    onPress={() => setRoleColor(role, color.id)}
+                    accessibilityLabel={`${title}: ${color.name}`}
+                    style={[
+                      styles.swatch,
+                      { backgroundColor: color.background },
+                      selected && styles.swatchSelected,
+                      taken && styles.swatchTaken,
+                    ]}
+                  >
+                    {selected && <Ionicons name="checkmark" size={16} color={color.text} />}
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        ))}
+      </View>
     </ScrollView>
   );
 }
@@ -128,6 +180,56 @@ function makeStyles(colors: Colors) {
     description: {
       color: colors.textMuted,
       fontSize: 13,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'baseline',
+    },
+    reset: {
+      color: colors.accentText,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    colorRow: {
+      padding: 14,
+      gap: 10,
+    },
+    colorTitle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    sampleNote: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sampleNoteText: {
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    swatches: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    swatch: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    swatchSelected: {
+      borderColor: colors.text,
+    },
+    swatchTaken: {
+      opacity: 0.2,
     },
     nextSection: {
       marginTop: 24,
@@ -177,11 +279,6 @@ function makeStyles(colors: Colors) {
     },
     woodNameSelected: {
       color: colors.text,
-    },
-    note: {
-      color: colors.textMuted,
-      fontSize: 13,
-      marginTop: 16,
     },
   });
 }

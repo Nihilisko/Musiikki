@@ -12,6 +12,7 @@ import BackButton from '../components/BackButton';
 import InstrumentButton from '../components/InstrumentButton';
 import { InstrumentProvider } from '../state/InstrumentContext';
 import { KeyProvider } from '../state/KeyContext';
+import { NoteColorProvider } from '../state/NoteColorContext';
 import { WoodProvider } from '../state/WoodContext';
 import { lockPortrait } from '../state/orientation';
 import { ThemeProvider, useTheme } from '../theme/ThemeContext';
@@ -25,7 +26,9 @@ export default function RootLayout() {
       <InstrumentProvider>
         <KeyProvider>
           <WoodProvider>
-            <AppStack />
+            <NoteColorProvider>
+              <AppStack />
+            </NoteColorProvider>
           </WoodProvider>
         </KeyProvider>
       </InstrumentProvider>

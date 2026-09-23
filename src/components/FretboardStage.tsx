@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { useInstrument } from '../state/InstrumentContext';
+import { useNoteColors } from '../state/NoteColorContext';
 import { useWood } from '../state/WoodContext';
 import type { Colors } from '../theme/colors';
 import { useThemedStyles } from '../theme/ThemeContext';
@@ -15,7 +16,7 @@ type Props = {
   /** Everything the fretboard shows; the strings and size come from the chosen instrument. */
   fretboard: Omit<
     FretboardProps,
-    'strings' | 'frets' | 'octaveCourses' | 'flats' | 'fretWidth' | 'wood'
+    'strings' | 'frets' | 'octaveCourses' | 'flats' | 'fretWidth' | 'wood' | 'noteColors'
   >;
   /** A line under the fretboard, e.g. "C major · C7 arpeggio". */
   status?: ReactNode;
@@ -37,6 +38,7 @@ export default function FretboardStage({ back, controls, fretboard, status }: Pr
   const styles = useThemedStyles(makeStyles);
   const { instrument, tuning } = useInstrument();
   const { wood } = useWood();
+  const { noteColors } = useNoteColors();
   const { width } = useWindowDimensions();
 
   const fixedWidth = LABEL_WIDTH + OPEN_FRET_WIDTH;
@@ -71,6 +73,7 @@ export default function FretboardStage({ back, controls, fretboard, status }: Pr
             flats={tuning.flats}
             fretWidth={fretWidth}
             wood={wood}
+            noteColors={noteColors}
           />
           {status !== undefined && <Text style={styles.status}>{status}</Text>}
         </View>

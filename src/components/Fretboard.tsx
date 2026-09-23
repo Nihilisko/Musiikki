@@ -4,8 +4,8 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { noteName, noteNameWithOctave } from '../music/notes';
 import { cellKey } from '../music/positions';
 import { pitchClass } from '../music/scales';
-import { noteColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
+import { DEFAULT_NOTE_COLORS, type NoteColors } from '../theme/noteColors';
 import { DEFAULT_WOOD, type Wood } from '../theme/woods';
 import WoodGrain from './WoodGrain';
 
@@ -52,6 +52,8 @@ export type FretboardProps = {
   noteFill?: (string[] | undefined)[];
   /** Fretboard wood: colour, grain and inlay colour. */
   wood?: Wood;
+  /** Colours for the root, scale notes and blue notes. */
+  noteColors?: NoteColors;
 };
 
 const FRET_WIDTH = 46;
@@ -79,6 +81,7 @@ export default function Fretboard({
   scrollToFret,
   noteFill,
   wood = DEFAULT_WOOD,
+  noteColors = DEFAULT_NOTE_COLORS,
 }: FretboardProps) {
   const scrollRef = useRef<ScrollView>(null);
   // The neck looks the same in both themes; only the text around it follows the theme.
@@ -181,6 +184,7 @@ export default function Fretboard({
                           blueNotes={blueNotes}
                           fill={noteFill?.[pitchClass(midi + fret)]}
                           hasFill={noteFill !== undefined}
+                          noteColors={noteColors}
                         />
                       </View>
                     )}
@@ -206,6 +210,7 @@ type NoteDotProps = {
   highlight?: Highlight;
   mode: LabelMode;
   degreeLabels?: string[];
+  noteColors: NoteColors;
 };
 
 function NoteDot({
@@ -217,6 +222,7 @@ function NoteDot({
   blueNotes,
   fill,
   hasFill,
+  noteColors,
 }: NoteDotProps) {
   const pc = pitchClass(midi);
   if (hasFill) {

@@ -21,7 +21,8 @@ import { pitchClass, SCALES, scalePitchClasses } from '../music/scales';
 import { spellChord, spellScale } from '../music/spelling';
 import { useInstrument } from '../state/InstrumentContext';
 import { useLandscape } from '../state/orientation';
-import { noteColors, type Colors } from '../theme/colors';
+import { useNoteColors } from '../state/NoteColorContext';
+import type { Colors } from '../theme/colors';
 import { useThemedStyles } from '../theme/ThemeContext';
 
 // One list for everything the fretboard can show: all notes, the scales, then the arpeggios.
@@ -56,6 +57,7 @@ type FretboardView = {
 export default function ScalesScreen() {
   const styles = useThemedStyles(makeStyles);
   const { tuning } = useInstrument();
+  const { noteColors } = useNoteColors();
   const [root, setRoot] = useState(0); // pitch class, 0 = C
   const [shapeOption, setShapeOption] = useState(0);
   const [labelOption, setLabelOption] = useState(0);
@@ -153,7 +155,7 @@ export default function ScalesScreen() {
           <Text style={styles.title}>{view.title}</Text>
           {view.notes !== '' && <Text style={styles.notes}>{'   ' + view.notes}</Text>}
           {blueNotes.length > 0 && (
-            <Text style={styles.blue}>
+            <Text style={[styles.blue, { color: noteColors.blue.background }]}>
               {'   blue: ' + blueNotes.map((pc) => view.noteNames[pc]).join(' ')}
             </Text>
           )}
@@ -235,7 +237,6 @@ function makeStyles(colors: Colors) {
       fontWeight: '600',
     },
     blue: {
-      color: noteColors.blue.background,
       fontWeight: '600',
     },
   });
