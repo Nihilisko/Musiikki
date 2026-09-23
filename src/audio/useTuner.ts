@@ -41,6 +41,8 @@ export function useTuner(targets: TunerTarget[], active: boolean, a4 = DEFAULT_A
   const samples = useRef(new Float32Array(0));
   const recent = useRef<number[]>([]);
   const lastHeard = useRef(0);
+  /** Until this time (ms) the microphone is ignored, e.g. while the tuner's own chime plays. */
+  const ignoreUntil = useRef(0);
 
   const { stream } = useAudioStream({
     sampleRate: SAMPLE_RATE,
@@ -62,8 +64,9 @@ export function useTuner(targets: TunerTarget[], active: boolean, a4 = DEFAULT_A
       samples.current = joined;
       if (joined.length < needed) return;
 
-      const pitch = detectPitch(joined, rate, rg.min, rg.max);
       const now = Date.now();
+      if (now < ignoreUntil.current) return;
+      const pitch = detectPitch(joined, rate, rg.min, rg.max);
       if (pitch && pitch.clarity >= MIN_CLARITY) {
         recent.current = [...recent.current, pitch.frequency].slice(-SMOOTHING);
         lastHeard.current = now;
@@ -106,5 +109,11 @@ export function useTuner(targets: TunerTarget[], active: boolean, a4 = DEFAULT_A
     };
   }, [active, stream]);
 
-  return { status, reading };
+  /** Stop listening for `ms` milliseconds, keeping the current reading on screen. */
+  function pause(ms: number) {
+    ignoreUntil.current = Date.now() + ms;
+    samples.current = new Float32Array(0); // start fresh afterwards, without the chime in it
+  }
+
+  return { status, reading, pause };
 }

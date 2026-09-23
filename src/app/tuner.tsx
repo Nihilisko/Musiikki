@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Platform,
   Pressable,
@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 
+import { CHIME_MS, useChime } from '../audio/useChime';
 import { useTuner } from '../audio/useTuner';
 import Stepper from '../components/Stepper';
 import TunerGauge from '../components/TunerGauge';
@@ -29,6 +30,8 @@ import type { Colors } from '../theme/colors';
 import { useTheme, useThemedStyles } from '../theme/ThemeContext';
 
 const A4_KEY = 'tuner-a4';
+/** The string must stay in tune this long before the chime rings, so a passing wobble doesn't. */
+const CHIME_AFTER_MS = 400;
 
 function targetKey(stringIndex: number, octave: boolean) {
   return `${stringIndex}${octave ? 'o' : ''}`;
@@ -59,7 +62,8 @@ export default function TunerScreen() {
     () => tunerTargets(tuning.strings, instrument.octaveCourses),
     [tuning.strings, instrument.octaveCourses],
   );
-  const { status, reading: detected } = useTuner(targets, true, a4);
+  const { status, reading: detected, pause } = useTuner(targets, true, a4);
+  const playChime = useChime();
 
   // In manual mode the note is always compared with the chosen string, however far off it is,
   // so a badly detuned string can't be mistaken for its neighbour. (If the tuning changes and
@@ -80,12 +84,35 @@ export default function TunerScreen() {
   }
 
   const inTune = reading !== null && Math.abs(reading.cents) <= IN_TUNE_CENTS;
+  const readingKey = reading ? targetKey(reading.stringIndex, reading.octave) : null;
+
+  // The chime: rings once when a string has stayed in tune for a moment, so the tuner can be
+  // used without looking (or seeing). It rings again only after the string has gone clearly
+  // out of tune or another string is played. While it rings the tuner stops listening, so it
+  // doesn't hear its own chime.
+  const chimedFor = useRef<string | null>(null);
+  const farOff = reading !== null && Math.abs(reading.cents) > IN_TUNE_CENTS + 2;
+  // Latest versions of the functions, so the timer below isn't restarted by every new reading.
+  const actions = useRef({ pause, playChime });
+  actions.current = { pause, playChime };
+
   useEffect(() => {
-    if (inTune && reading) {
-      const key = targetKey(reading.stringIndex, reading.octave);
-      setTuned((current) => (current.has(key) ? current : new Set(current).add(key)));
+    if (farOff || (chimedFor.current !== null && readingKey !== chimedFor.current)) {
+      chimedFor.current = null;
     }
-  }, [inTune, reading]);
+  }, [farOff, readingKey]);
+
+  useEffect(() => {
+    if (!inTune || !readingKey) return;
+    setTuned((current) => (current.has(readingKey) ? current : new Set(current).add(readingKey)));
+    if (chimedFor.current === readingKey) return;
+    const timer = setTimeout(() => {
+      chimedFor.current = readingKey;
+      actions.current.pause(CHIME_MS + 100);
+      actions.current.playChime();
+    }, CHIME_AFTER_MS);
+    return () => clearTimeout(timer);
+  }, [inTune, readingKey]);
 
   const note = shownTarget ? noteNameWithOctave(shownTarget.midi, tuning.flats) : '– –';
   const hint = !reading
