@@ -1,12 +1,28 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import { useTuner } from '../audio/useTuner';
 import Stepper from '../components/Stepper';
 import TunerGauge from '../components/TunerGauge';
 import { noteNameWithOctave } from '../music/notes';
-import { DEFAULT_A4, IN_TUNE_CENTS, MAX_A4, MIN_A4, tunerTargets } from '../music/tuner';
+import {
+  centsOff,
+  DEFAULT_A4,
+  frequencyOf,
+  IN_TUNE_CENTS,
+  MAX_A4,
+  MIN_A4,
+  tunerTargets,
+} from '../music/tuner';
 import { useInstrument } from '../state/InstrumentContext';
 import { loadJson, saveJson } from '../state/storage';
 import type { Colors } from '../theme/colors';
@@ -26,6 +42,8 @@ export default function TunerScreen() {
   const [a4, setA4State] = useState(DEFAULT_A4);
   // Strings that have been in tune while this screen is open.
   const [tuned, setTuned] = useState<Set<string>>(new Set());
+  // Manual mode: the string chosen by tapping it, or null for automatic detection.
+  const [locked, setLocked] = useState<string | null>(null);
 
   useEffect(() => {
     loadJson<number>(A4_KEY).then((saved) => {
@@ -41,7 +59,25 @@ export default function TunerScreen() {
     () => tunerTargets(tuning.strings, instrument.octaveCourses),
     [tuning.strings, instrument.octaveCourses],
   );
-  const { status, reading } = useTuner(targets, true, a4);
+  const { status, reading: detected } = useTuner(targets, true, a4);
+
+  // In manual mode the note is always compared with the chosen string, however far off it is,
+  // so a badly detuned string can't be mistaken for its neighbour. (If the tuning changes and
+  // the chosen string no longer exists, the tuner falls back to automatic.)
+  const lockedTarget = targets.find((t) => targetKey(t.stringIndex, t.octave) === locked);
+  const reading =
+    detected && lockedTarget
+      ? {
+          ...lockedTarget,
+          frequency: detected.frequency,
+          cents: centsOff(detected.frequency, frequencyOf(lockedTarget.midi, a4)),
+        }
+      : detected;
+  const shownTarget = lockedTarget ?? reading;
+
+  function chooseString(key: string) {
+    setLocked((current) => (current === key ? null : key)); // tap again to go back to auto
+  }
 
   const inTune = reading !== null && Math.abs(reading.cents) <= IN_TUNE_CENTS;
   useEffect(() => {
@@ -51,14 +87,18 @@ export default function TunerScreen() {
     }
   }, [inTune, reading]);
 
-  const note = reading ? noteNameWithOctave(reading.midi, tuning.flats) : '– –';
+  const note = shownTarget ? noteNameWithOctave(shownTarget.midi, tuning.flats) : '– –';
   const hint = !reading
     ? 'Play one string'
     : inTune
       ? 'In tune'
-      : reading.cents < 0
-        ? 'Too low – tune up'
-        : 'Too high – tune down';
+      : Math.abs(reading.cents) > 50
+        ? reading.cents < 0
+          ? 'Far too low – tune up'
+          : 'Far too high – tune down'
+        : reading.cents < 0
+          ? 'Too low – tune up'
+          : 'Too high – tune down';
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
@@ -78,14 +118,37 @@ export default function TunerScreen() {
         )}
       </View>
 
-      {/* The strings of the tuning, lowest first; the one being played lights up. */}
+      {/* Auto, then the strings lowest first. The string being tuned lights up; tapping a
+          string tunes to it only, tapping it again (or Auto) goes back to detecting. */}
       <View style={styles.strings}>
+        <Pressable
+          onPress={() => setLocked(null)}
+          style={[styles.string, !lockedTarget && styles.autoOn]}
+          accessibilityLabel="Automatic string detection"
+        >
+          <Ionicons
+            name="flash"
+            size={14}
+            color={!lockedTarget ? colors.onAccent : colors.textMuted}
+          />
+          <Text style={[styles.stringName, !lockedTarget && styles.stringNameCurrent]}>Auto</Text>
+        </Pressable>
         {targets.map((t) => {
           const key = targetKey(t.stringIndex, t.octave);
-          const current = reading?.stringIndex === t.stringIndex && reading.octave === t.octave;
+          const current =
+            shownTarget?.stringIndex === t.stringIndex && shownTarget.octave === t.octave;
           const done = tuned.has(key);
           return (
-            <View key={key} style={[styles.string, current && styles.stringCurrent]}>
+            <Pressable
+              key={key}
+              onPress={() => chooseString(key)}
+              style={[
+                styles.string,
+                current && styles.stringCurrent,
+                key === locked && styles.stringLocked,
+              ]}
+              accessibilityLabel={`Tune ${noteNameWithOctave(t.midi, tuning.flats)}`}
+            >
               <Text style={[styles.stringName, current && styles.stringNameCurrent]}>
                 {noteNameWithOctave(t.midi, tuning.flats)}
               </Text>
@@ -96,10 +159,15 @@ export default function TunerScreen() {
                   color={current ? colors.onAccent : '#2e9d57'}
                 />
               )}
-            </View>
+            </Pressable>
           );
         })}
       </View>
+      <Text style={styles.mode}>
+        {lockedTarget
+          ? `Manual: tuning ${noteNameWithOctave(lockedTarget.midi, tuning.flats)} only. Tap it again or Auto to detect strings.`
+          : 'Auto: play any string. Tap a string to tune only that one.'}
+      </Text>
 
       {status === 'denied' && Platform.OS !== 'web' && (
         <Text style={styles.warning}>
@@ -172,6 +240,20 @@ function makeStyles(colors: Colors) {
       paddingHorizontal: 12,
       borderRadius: 16,
       backgroundColor: colors.surface,
+    },
+    autoOn: {
+      backgroundColor: colors.accent,
+    },
+    stringLocked: {
+      borderWidth: 2,
+      borderColor: colors.brand,
+    },
+    mode: {
+      color: colors.textMuted,
+      fontSize: 13,
+      textAlign: 'center',
+      marginTop: -6,
+      maxWidth: 340,
     },
     stringCurrent: {
       backgroundColor: colors.accent,
