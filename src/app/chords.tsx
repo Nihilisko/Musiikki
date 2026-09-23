@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
+import BackButton from '../components/BackButton';
 import ChipRow from '../components/ChipRow';
 import ChordDiagram from '../components/ChordDiagram';
 import KeyPicker from '../components/KeyPicker';
@@ -26,8 +27,13 @@ export default function ChordsScreen() {
   const { width } = useWindowDimensions();
   const { instrument, tuning } = useInstrument();
   const { noteColors } = useNoteColors();
-  const [root, setRoot] = useState(0);
-  const [type, setType] = useState(0);
+  // Opened from another screen (e.g. Chords in a key) with a chord to show first.
+  const params = useLocalSearchParams<{ root?: string; type?: string }>();
+  const [root, setRoot] = useState(() => (Number(params.root) || 0) % 12);
+  const [type, setType] = useState(() => {
+    const t = Number(params.type);
+    return Number.isInteger(t) && t >= 0 && t < CHORD_TYPES.length ? t : 0;
+  });
   const [labelOption, setLabelOption] = useState(0);
 
   const chord = CHORD_TYPES[type];
@@ -51,6 +57,10 @@ export default function ChordsScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
+      {/* Opened from another screen, the back button goes back there rather than to the menu. */}
+      {params.root !== undefined && (
+        <Stack.Screen options={{ headerLeft: () => <BackButton label="Back" /> }} />
+      )}
       <Text style={styles.subtitle}>
         {instrument.name} · {tuning.name}
       </Text>

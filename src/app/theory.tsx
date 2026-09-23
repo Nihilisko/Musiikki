@@ -25,6 +25,7 @@ const ITEMS: Item[] = [
     title: 'Chords in a key',
     description: 'The triads and seventh chords of any key, with their degrees.',
     icon: 'grid-outline',
+    href: '/key-chords',
   },
   {
     title: 'Theory notes',

@@ -113,6 +113,10 @@ function AppStack() {
           options={{ title: 'Capo & transpose', headerLeft: () => <BackButton label="Theory" /> }}
         />
         <Stack.Screen
+          name="key-chords"
+          options={{ title: 'Chords in a key', headerLeft: () => <BackButton label="Theory" /> }}
+        />
+        <Stack.Screen
           name="chords"
           options={{ title: 'Chords', headerLeft: () => <BackButton label="Menu" /> }}
         />
