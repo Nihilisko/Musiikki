@@ -2,11 +2,79 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { findNote } from '../content/theoryNotes';
+import { findNote, type NoteBlock } from '../content/theoryNotes';
 import type { Colors } from '../theme/colors';
 import { useTheme, useThemedStyles } from '../theme/ThemeContext';
 
-// One theory note: the main idea, a short explanation, an example and a link to see it.
+type Styles = ReturnType<typeof makeStyles>;
+
+/** Text with **double stars** around the words to show in bold. */
+function RichText({ text, style, boldStyle }: { text: string; style: object; boldStyle: object }) {
+  const parts = text.split('**');
+  return (
+    <Text style={style}>
+      {parts.map((part, i) =>
+        i % 2 === 1 ? (
+          <Text key={i} style={boldStyle}>
+            {part}
+          </Text>
+        ) : (
+          part
+        ),
+      )}
+    </Text>
+  );
+}
+
+function Block({ block, styles }: { block: NoteBlock; styles: Styles }) {
+  switch (block.type) {
+    case 'heading':
+      return <Text style={styles.heading}>{block.text}</Text>;
+    case 'text':
+      return <RichText text={block.text} style={styles.text} boldStyle={styles.bold} />;
+    case 'list':
+      return (
+        <View style={styles.list}>
+          {block.items.map((item, i) => (
+            <View key={i} style={styles.listItem}>
+              <Text style={styles.bullet}>•</Text>
+              <RichText
+                text={item}
+                style={[styles.text, styles.listText]}
+                boldStyle={styles.bold}
+              />
+            </View>
+          ))}
+        </View>
+      );
+    case 'table':
+      return (
+        <View style={styles.table}>
+          {block.header && (
+            <View style={[styles.tableRow, styles.tableHeader]}>
+              {block.header.map((cell, i) => (
+                <Text key={i} style={[styles.cell, styles.headerCell, i === 0 && styles.firstCell]}>
+                  {cell}
+                </Text>
+              ))}
+            </View>
+          )}
+          {block.rows.map((row, r) => (
+            <View key={r} style={[styles.tableRow, r % 2 === 1 && styles.stripe]}>
+              {row.map((cell, i) => (
+                <Text key={i} style={[styles.cell, i === 0 && styles.firstCell]}>
+                  {cell}
+                </Text>
+              ))}
+            </View>
+          ))}
+        </View>
+      );
+  }
+}
+
+// One theory note: the main idea first, then short blocks (text, lists, tables), an example
+// and a button that opens the idea in the app.
 export default function NoteScreen() {
   const { colors } = useTheme();
   const styles = useThemedStyles(makeStyles);
@@ -16,7 +84,7 @@ export default function NoteScreen() {
   if (!note) {
     return (
       <View style={styles.content}>
-        <Text style={styles.paragraph}>This note could not be found.</Text>
+        <Text style={styles.text}>This note could not be found.</Text>
       </View>
     );
   }
@@ -24,12 +92,15 @@ export default function NoteScreen() {
   return (
     <ScrollView contentContainerStyle={styles.content}>
       <Stack.Screen options={{ title: note.title }} />
-      <Text style={styles.summary}>{note.summary}</Text>
-      {note.paragraphs.map((p, i) => (
-        <Text key={i} style={styles.paragraph}>
-          {p}
-        </Text>
+      <View style={styles.keyIdea}>
+        <Text style={styles.keyIdeaLabel}>Key idea</Text>
+        <Text style={styles.keyIdeaText}>{note.summary}</Text>
+      </View>
+
+      {note.blocks.map((block, i) => (
+        <Block key={i} block={block} styles={styles} />
       ))}
+
       {note.example && (
         <View style={styles.example}>
           <Text style={styles.exampleLabel}>Example</Text>
@@ -52,19 +123,95 @@ export default function NoteScreen() {
 function makeStyles(colors: Colors) {
   return StyleSheet.create({
     content: {
-      padding: 16,
-      gap: 14,
+      padding: 20,
+      gap: 16,
+      paddingBottom: 40,
     },
-    summary: {
+    keyIdea: {
+      padding: 16,
+      borderRadius: 14,
+      backgroundColor: colors.surface,
+      gap: 6,
+    },
+    keyIdeaLabel: {
+      color: colors.accentText,
+      fontSize: 12,
+      fontWeight: '800',
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    keyIdeaText: {
       color: colors.text,
       fontSize: 19,
       fontWeight: '700',
-      lineHeight: 26,
+      lineHeight: 27,
     },
-    paragraph: {
+    heading: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: '800',
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
+      marginTop: 8,
+      marginBottom: -6,
+    },
+    text: {
       color: colors.text,
       fontSize: 16,
-      lineHeight: 24,
+      lineHeight: 26,
+    },
+    bold: {
+      fontWeight: '800',
+    },
+    list: {
+      gap: 10,
+    },
+    listItem: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    bullet: {
+      color: colors.accentText,
+      fontSize: 16,
+      lineHeight: 26,
+      fontWeight: '800',
+    },
+    listText: {
+      flex: 1,
+    },
+    table: {
+      borderRadius: 12,
+      overflow: 'hidden',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    tableRow: {
+      flexDirection: 'row',
+      paddingVertical: 9,
+      paddingHorizontal: 10,
+      backgroundColor: colors.background,
+    },
+    tableHeader: {
+      backgroundColor: colors.surface,
+    },
+    stripe: {
+      backgroundColor: colors.surface,
+    },
+    cell: {
+      flex: 1,
+      color: colors.text,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+    firstCell: {
+      fontWeight: '700',
+    },
+    headerCell: {
+      color: colors.textMuted,
+      fontSize: 11,
+      fontWeight: '800',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
     },
     example: {
       padding: 14,
@@ -84,7 +231,7 @@ function makeStyles(colors: Colors) {
     exampleText: {
       color: colors.text,
       fontSize: 15,
-      lineHeight: 22,
+      lineHeight: 23,
     },
     link: {
       flexDirection: 'row',
