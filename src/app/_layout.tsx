@@ -109,6 +109,10 @@ function AppStack() {
           options={{ title: 'Chords', headerLeft: () => <BackButton label="Menu" /> }}
         />
         <Stack.Screen
+          name="triads"
+          options={{ headerShown: false, animation: 'slide_from_bottom' }}
+        />
+        <Stack.Screen
           name="tuner"
           options={{ title: 'Tuner', headerLeft: () => <BackButton label="Menu" /> }}
         />

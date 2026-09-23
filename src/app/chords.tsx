@@ -1,5 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import ChipRow from '../components/ChipRow';
 import ChordDiagram from '../components/ChordDiagram';
@@ -52,6 +54,15 @@ export default function ChordsScreen() {
         {instrument.name} · {tuning.name}
       </Text>
 
+      <Pressable
+        onPress={() => router.push('/triads')}
+        style={({ pressed }) => [styles.triads, pressed && { opacity: 0.7 }]}
+      >
+        <Ionicons name="git-merge-outline" size={18} color={colors.accentText} />
+        <Text style={styles.triadsText}>Triads & inversions</Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+      </Pressable>
+
       <View style={styles.row}>
         <KeyPicker root={root} rootName={spelled.rootName} onChange={setRoot} />
         <ChipRow options={LABEL_OPTIONS} selected={labelOption} onSelect={setLabelOption} />
@@ -103,6 +114,20 @@ function makeStyles(colors: Colors) {
       color: colors.textMuted,
       fontSize: 13,
       textAlign: 'center',
+    },
+    triads: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      padding: 14,
+      borderRadius: 12,
+      backgroundColor: colors.surface,
+    },
+    triadsText: {
+      flex: 1,
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: '700',
     },
     row: {
       flexDirection: 'row',
