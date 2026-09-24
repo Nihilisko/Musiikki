@@ -9,7 +9,7 @@ Tarkistettu syyskuussa 2026. Googlen vaatimukset muuttuvat usein, joten tarkista
 - [ ] **Sinä** – Google Play Console -kehittäjätili (henkilötili): 25 $ kertamaksu ja henkilöllisyyden vahvistus (nimi, osoite, puhelin, henkilöllisyystodistus). Sama vahvistus kattaa Androidin uuden kehittäjävarmennuksen, joka koskee vuodesta 2026 alkaen myös Play-kaupan ulkopuolisia sovelluksia.
 - [ ] **Sinä** – Tavaramerkkihaku nimelle ScaleSmith: EUIPO eSearch, USPTO, WIPO Global Brand Database ja haku Play-kaupasta. Varanimi mietitään, jos nimi on varattu musiikki- tai ohjelmistoluokissa.
 - [ ] **Sinä** – Premiumin hinta (kertamaksu, suunta 4,99–9,99 €).
-- [ ] **Yhdessä** – Tietosuojaseloste julkiseen osoitteeseen (esim. GitHub Pages). Se on pakollinen, koska sovellus pyytää mikrofonin käyttöä. Claude kirjoittaa tekstin, ja sinä julkaiset sen.
+- [ ] **Yhdessä** – Tietosuojaseloste julkiseen osoitteeseen (esim. GitHub Pages). Se on pakollinen, koska sovellus pyytää mikrofonin käyttöä. Teksti on valmis: `docs/store/privacy-policy.html` (ja `.md`). Täytä nimesi, päivämäärä ja sähköposti, ja julkaise sivu.
 
 ## B. Sovellus (koodi)
 
@@ -30,7 +30,7 @@ Tarkistettu syyskuussa 2026. Googlen vaatimukset muuttuvat usein, joten tarkista
 
 ## D. Kauppasivu
 
-- [ ] **Yhdessä** – Nimi (enintään 30 merkkiä), lyhyt kuvaus (80) ja pitkä kuvaus (4000). Claude kirjoittaa luonnokset.
+- [ ] **Yhdessä** – Nimi (enintään 30 merkkiä), lyhyt kuvaus (80) ja pitkä kuvaus (4000). Luonnokset: `docs/store/listing.md` (myös tietoturvaosion vastaukset).
 - [ ] **Claude** – Kuvake 512 × 512 PNG, ilman läpinäkyvyyttä.
 - [ ] **Claude** – Esittelykuva 1024 × 500 (JPEG tai 24-bittinen PNG, ei läpinäkyvyyttä). Tärkeä sisältö keskelle noin 924 × 400 alueelle.
 - [ ] **Yhdessä** – Kuvakaappaukset: 2–8 kpl puhelimesta. Suositus on vähintään 4 kpl, joiden koko on 1080 px tai enemmän.
