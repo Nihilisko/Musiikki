@@ -1,0 +1,30 @@
+// Made by scripts/generate_backing_sounds.py - do not edit by hand.
+// Bass note sounds by MIDI note number (28 = E1, the open low E string).
+
+export const BASS_SOUNDS: Record<number, number> = {
+  28: require('../../assets/sounds/bass/e1.wav'),
+  29: require('../../assets/sounds/bass/f1.wav'),
+  30: require('../../assets/sounds/bass/fs1.wav'),
+  31: require('../../assets/sounds/bass/g1.wav'),
+  32: require('../../assets/sounds/bass/gs1.wav'),
+  33: require('../../assets/sounds/bass/a1.wav'),
+  34: require('../../assets/sounds/bass/as1.wav'),
+  35: require('../../assets/sounds/bass/b1.wav'),
+  36: require('../../assets/sounds/bass/c2.wav'),
+  37: require('../../assets/sounds/bass/cs2.wav'),
+  38: require('../../assets/sounds/bass/d2.wav'),
+  39: require('../../assets/sounds/bass/ds2.wav'),
+  40: require('../../assets/sounds/bass/e2.wav'),
+  41: require('../../assets/sounds/bass/f2.wav'),
+  42: require('../../assets/sounds/bass/fs2.wav'),
+  43: require('../../assets/sounds/bass/g2.wav'),
+  44: require('../../assets/sounds/bass/gs2.wav'),
+  45: require('../../assets/sounds/bass/a2.wav'),
+  46: require('../../assets/sounds/bass/as2.wav'),
+  47: require('../../assets/sounds/bass/b2.wav'),
+  48: require('../../assets/sounds/bass/c3.wav'),
+  49: require('../../assets/sounds/bass/cs3.wav'),
+  50: require('../../assets/sounds/bass/d3.wav'),
+  51: require('../../assets/sounds/bass/ds3.wav'),
+  52: require('../../assets/sounds/bass/e3.wav'),
+};

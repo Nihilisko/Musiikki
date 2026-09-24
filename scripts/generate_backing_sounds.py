@@ -1,6 +1,7 @@
-"""Makes the backing track sounds: piano chords and a small drum kit.
+"""Makes the backing track sounds: piano chords, bass notes and a small drum kit.
 
 Run from the project folder:  python3 scripts/generate_backing_sounds.py
+Only one group:                python3 scripts/generate_backing_sounds.py bass   (or chords, drums)
 (needs numpy:  pip install numpy)
 Everything is synthesised here, so there are no sample licences to worry about.
 """
@@ -215,13 +216,68 @@ def write_chord_index():
     open('src/audio/chordSounds.ts', 'w').write('\n'.join(lines) + '\n')
 
 
+# --- Bass -------------------------------------------------------------------------------------
+# A fingered electric bass: a plucked string is rich in overtones at first, and the high ones
+# die away fast, so the note turns round and warm. A short, soft finger thump starts it.
+
+BASS_LOW = 28  # E1, the open low E string
+BASS_HIGH = 52  # E3
+BASS_SECONDS = 1.4
+
+
+def bass(freq):
+    n = int(RATE * BASS_SECONDS)
+    t = np.arange(n) / RATE
+    out = np.zeros(n)
+    for k in range(1, 30):
+        fk = k * freq
+        if fk > 5000:
+            break
+        amp = 1 / k ** 1.1 * (0.5 if k == 2 else 1.0)  # plucked near the bridge: a thinner 2nd
+        env = np.exp(-t * (1.8 + 1.6 * k))
+        out += amp * env * np.sin(2 * math.pi * fk * t + rng.uniform(0, 2 * math.pi))
+    out = biquad(out, 'lowpass', 1800)
+    thump = biquad(rng.uniform(-1, 1, int(RATE * 0.02)), 'lowpass', 400) * 0.3
+    out[: len(thump)] += thump * np.linspace(1, 0, len(thump))
+    attack = np.minimum(1, np.arange(n) / (RATE * 0.004))
+    release = np.minimum(1, (n - np.arange(n)) / (RATE * 0.1))
+    return out * attack * release
+
+
+def write_bass_index():
+    lines = [
+        '// Made by scripts/generate_backing_sounds.py - do not edit by hand.',
+        '// Bass note sounds by MIDI note number (28 = E1, the open low E string).',
+        '',
+        'export const BASS_SOUNDS: Record<number, number> = {',
+    ]
+    for midi in range(BASS_LOW, BASS_HIGH + 1):
+        name = f'{NAMES[midi % 12]}{midi // 12 - 1}'
+        lines.append(f"  {midi}: require('../../assets/sounds/bass/{name}.wav'),")
+    lines.append('};')
+    open('src/audio/bassSounds.ts', 'w').write('\n'.join(lines) + '\n')
+
+
 if __name__ == '__main__':
     import os
-    os.makedirs('assets/sounds/chords', exist_ok=True)
-    for root in range(12):
-        for name, intervals in CHORD_TYPES.items():
-            write(f'assets/sounds/chords/{NAMES[root]}-{name}.wav', piano_chord(root, intervals))
-    write_chord_index()
+    import sys
+
+    groups = sys.argv[1:] or ['chords', 'bass', 'drums']
+    if 'chords' in groups:
+        os.makedirs('assets/sounds/chords', exist_ok=True)
+        for root in range(12):
+            for name, intervals in CHORD_TYPES.items():
+                write(f'assets/sounds/chords/{NAMES[root]}-{name}.wav', piano_chord(root, intervals))
+        write_chord_index()
+    if 'bass' in groups:
+        os.makedirs('assets/sounds/bass', exist_ok=True)
+        for midi in range(BASS_LOW, BASS_HIGH + 1):
+            f = 440 * 2 ** ((midi - 69) / 12)
+            write(f'assets/sounds/bass/{NAMES[midi % 12]}{midi // 12 - 1}.wav', bass(f) * 0.6)
+        write_bass_index()
+    if 'drums' not in groups:
+        print('done')
+        sys.exit()
     write('assets/sounds/drums/kick.wav', kick())
     write('assets/sounds/drums/snare.wav', snare())
     write('assets/sounds/drums/hat.wav', hat(0.09, 45))

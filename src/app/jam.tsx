@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { useBacking } from '../audio/useBacking';
 import ChipRow from '../components/ChipRow';
@@ -8,6 +8,7 @@ import Dropdown from '../components/Dropdown';
 import KeyPicker from '../components/KeyPicker';
 import Stepper from '../components/Stepper';
 import { GROOVES, grooveById, chordSoundName } from '../music/backing';
+import { bassLine } from '../music/bassLines';
 import type { KeyMode } from '../music/circle';
 import { clampBpm } from '../music/metronome';
 import { keyScale, progressionChords, PROGRESSIONS } from '../music/progressions';
@@ -29,6 +30,7 @@ export default function JamScreen() {
   const [grooveId, setGrooveId] = useState(PROGRESSIONS.major[0].groove);
   const [bpm, setBpm] = useState(grooveById(grooveId).defaultBpm);
   const [drumMix, setDrumMix] = useState(1);
+  const [bassOn, setBassOn] = useState(true);
 
   const mode = MODES[modeIndex];
   const progressions = PROGRESSIONS[mode];
@@ -37,12 +39,20 @@ export default function JamScreen() {
   const groove = grooveById(grooveId);
   const tonicName = spellScale(tonic, keyScale(mode)).rootName;
 
-  // The piano sound of every bar, remade only when the chords change.
+  // The piano sound and bass line of every bar, remade only when the chords or groove change.
   const chordKey = chords.map((c) => c.name).join(' ');
   const bars = useMemo(
-    () => progression.bars.map((i) => chordSoundName(chords[i].root, chords[i].type)),
+    () =>
+      progression.bars.map((chordIndex, i) => {
+        const chord = chords[chordIndex];
+        const next = chords[progression.bars[(i + 1) % progression.bars.length]];
+        return {
+          chord: chordSoundName(chord.root, chord.type),
+          bass: bassLine(grooveId, chord.root, chord.type, next.root),
+        };
+      }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [chordKey, progression],
+    [chordKey, progression, grooveId],
   );
 
   const { running, bar, beat, toggle } = useBacking({
@@ -51,6 +61,7 @@ export default function JamScreen() {
     bars,
     pianoVolume: 0.55,
     drumVolume: MIX[drumMix],
+    bassVolume: bassOn ? 0.9 : 0,
   });
 
   // Picking a progression also picks the groove that suits it (you can still change it).
@@ -142,6 +153,20 @@ export default function JamScreen() {
       <Text style={styles.sectionLabel}>Drums</Text>
       <ChipRow options={MIX_OPTIONS} selected={drumMix} onSelect={setDrumMix} />
 
+      <View style={styles.row}>
+        <View style={styles.switchText}>
+          <Text style={styles.label}>Bass</Text>
+          <Text style={styles.hint}>Turn off to play the bass line yourself</Text>
+        </View>
+        <Switch
+          value={bassOn}
+          onValueChange={setBassOn}
+          trackColor={{ true: colors.brand, false: colors.border }}
+          thumbColor={colors.onBrand}
+          accessibilityLabel="Bass"
+        />
+      </View>
+
       <Pressable
         onPress={toggle}
         style={({ pressed }) => [styles.start, pressed && { opacity: 0.7 }]}
@@ -220,6 +245,19 @@ function makeStyles(colors: Colors) {
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 12,
+    },
+    switchText: {
+      flex: 1,
+      gap: 2,
+    },
+    label: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+    hint: {
+      color: colors.textMuted,
+      fontSize: 13,
     },
     sectionLabel: {
       color: colors.textMuted,
