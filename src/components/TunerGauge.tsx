@@ -54,13 +54,16 @@ function mix(a: number[], b: number[], t: number) {
   return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
 }
 
-/** Window light: green when in tune, amber when close, red when far off. */
-export function lightColor(cents: number | null): string {
+/**
+ * Window light: green when in tune (within `inTune` cents), amber when close, red when far off.
+ */
+export function lightColor(cents: number | null, inTune = IN_TUNE_CENTS): string {
   if (cents === null) return '#1a1411';
   const off = Math.abs(cents);
-  if (off <= IN_TUNE_CENTS) return mix(GREEN, GREEN, 0);
-  if (off <= 15) return mix(GREEN, AMBER, (off - IN_TUNE_CENTS) / (15 - IN_TUNE_CENTS));
-  return mix(AMBER, RED, Math.min(1, (off - 15) / 20));
+  const close = Math.max(15, inTune + 8);
+  if (off <= inTune) return mix(GREEN, GREEN, 0);
+  if (off <= close) return mix(GREEN, AMBER, (off - inTune) / (close - inTune));
+  return mix(AMBER, RED, Math.min(1, (off - close) / 20));
 }
 
 // The dial never changes, so its tick marks are worked out once.
@@ -84,9 +87,11 @@ type Props = {
   note: string;
   /** Width in points. */
   size: number;
+  /** Cents that count as in tune (the light turns green); the tuner's ±3 by default. */
+  inTuneCents?: number;
 };
 
-export default function TunerGauge({ cents, note, size }: Props) {
+export default function TunerGauge({ cents, note, size, inTuneCents = IN_TUNE_CENTS }: Props) {
   // The needle glides to each new reading instead of jumping.
   const angle = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -102,7 +107,7 @@ export default function TunerGauge({ cents, note, size }: Props) {
     inputRange: [-180, 180],
     outputRange: ['-180deg', '180deg'],
   });
-  const light = lightColor(cents);
+  const light = lightColor(cents, inTuneCents);
   const inTune = cents !== null && Math.abs(cents) <= IN_TUNE_CENTS;
 
   return (

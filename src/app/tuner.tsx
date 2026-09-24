@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Platform,
@@ -220,6 +221,15 @@ export default function TunerScreen() {
         <Text style={styles.referenceLabel}>Reference pitch</Text>
         <Stepper value={a4} min={MIN_A4} max={MAX_A4} onChange={setA4} caption="A4 Hz" />
       </View>
+
+      <Pressable
+        onPress={() => router.push('/slide')}
+        style={({ pressed }) => [styles.slideLink, pressed && { opacity: 0.7 }]}
+      >
+        <Ionicons name="trending-up" size={18} color={colors.accentText} />
+        <Text style={styles.slideLinkText}>Slide intonation trainer</Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+      </Pressable>
     </ScrollView>
   );
 }
@@ -303,6 +313,20 @@ function makeStyles(colors: Colors) {
       alignItems: 'center',
       gap: 6,
       marginTop: 8,
+    },
+    slideLink: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      backgroundColor: colors.surface,
+    },
+    slideLinkText: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: '700',
     },
     referenceLabel: {
       color: colors.textMuted,

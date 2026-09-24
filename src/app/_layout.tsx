@@ -181,6 +181,10 @@ function AppStack() {
           options={{ title: 'Tuner', headerLeft: () => <BackButton label="Menu" /> }}
         />
         <Stack.Screen
+          name="slide"
+          options={{ title: 'Slide intonation', headerLeft: () => <BackButton label="Tuner" /> }}
+        />
+        <Stack.Screen
           name="metronome"
           options={{ title: 'Metronome', headerLeft: () => <BackButton label="Menu" /> }}
         />
