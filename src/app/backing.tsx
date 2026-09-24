@@ -25,6 +25,7 @@ const ITEMS: Item[] = [
     title: 'Chord progressions',
     description: 'Chords and a drum groove to jam over, in any key and tempo.',
     icon: 'musical-notes-outline',
+    href: '/jam',
   },
 ];
 

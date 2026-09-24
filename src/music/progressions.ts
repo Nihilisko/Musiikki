@@ -17,6 +17,10 @@ export type Progression = {
   name: string;
   /** The different chords of the progression, in the order they first appear. */
   steps: ProgressionStep[];
+  /** The form, one bar at a time, as indexes into `steps` (12-bar blues: I I I I IV IV…). */
+  bars: number[];
+  /** The backing groove that suits it (see GROOVES in backing.ts). */
+  groove: string;
 };
 
 function step(degree: number, numeral: string, symbol: string): ProgressionStep {
@@ -25,16 +29,56 @@ function step(degree: number, numeral: string, symbol: string): ProgressionStep 
 
 export const PROGRESSIONS: Record<KeyMode, Progression[]> = {
   major: [
-    { name: '12-bar blues', steps: [step(1, 'I7', '7'), step(4, 'IV7', '7'), step(5, 'V7', '7')] },
-    { name: 'Pop I–V–vi–IV', steps: [step(1, 'I', ''), step(5, 'V', ''), step(6, 'vi', 'm'), step(4, 'IV', '')] },
-    { name: 'Jazz ii–V–I', steps: [step(2, 'ii7', 'm7'), step(5, 'V7', '7'), step(1, 'Imaj7', 'maj7')] },
-    { name: '50s I–vi–IV–V', steps: [step(1, 'I', ''), step(6, 'vi', 'm'), step(4, 'IV', ''), step(5, 'V', '')] },
+    {
+      name: '12-bar blues',
+      steps: [step(1, 'I7', '7'), step(4, 'IV7', '7'), step(5, 'V7', '7')],
+      bars: [0, 0, 0, 0, 1, 1, 0, 0, 2, 1, 0, 2],
+      groove: 'shuffle',
+    },
+    {
+      name: 'Pop I–V–vi–IV',
+      steps: [step(1, 'I', ''), step(5, 'V', ''), step(6, 'vi', 'm'), step(4, 'IV', '')],
+      bars: [0, 1, 2, 3],
+      groove: 'pop',
+    },
+    {
+      name: 'Jazz ii–V–I',
+      steps: [step(2, 'ii7', 'm7'), step(5, 'V7', '7'), step(1, 'Imaj7', 'maj7')],
+      bars: [0, 1, 2, 2],
+      groove: 'swing',
+    },
+    {
+      name: '50s I–vi–IV–V',
+      steps: [step(1, 'I', ''), step(6, 'vi', 'm'), step(4, 'IV', ''), step(5, 'V', '')],
+      bars: [0, 1, 2, 3],
+      groove: 'pop',
+    },
   ],
   minor: [
-    { name: 'Minor blues', steps: [step(1, 'i7', 'm7'), step(4, 'iv7', 'm7'), step(5, 'V7', '7')] },
-    { name: 'Pop i–VI–III–VII', steps: [step(1, 'i', 'm'), step(6, 'VI', ''), step(3, 'III', ''), step(7, 'VII', '')] },
-    { name: 'Jazz iiø–V–i', steps: [step(2, 'iiø7', 'm7♭5'), step(5, 'V7', '7'), step(1, 'i7', 'm7')] },
-    { name: 'Andalusian i–VII–VI–V', steps: [step(1, 'i', 'm'), step(7, 'VII', ''), step(6, 'VI', ''), step(5, 'V', '')] },
+    {
+      name: 'Minor blues',
+      steps: [step(1, 'i7', 'm7'), step(4, 'iv7', 'm7'), step(5, 'V7', '7')],
+      bars: [0, 0, 0, 0, 1, 1, 0, 0, 2, 1, 0, 2],
+      groove: 'shuffle',
+    },
+    {
+      name: 'Pop i–VI–III–VII',
+      steps: [step(1, 'i', 'm'), step(6, 'VI', ''), step(3, 'III', ''), step(7, 'VII', '')],
+      bars: [0, 1, 2, 3],
+      groove: 'pop',
+    },
+    {
+      name: 'Jazz iiø–V–i',
+      steps: [step(2, 'iiø7', 'm7♭5'), step(5, 'V7', '7'), step(1, 'i7', 'm7')],
+      bars: [0, 1, 2, 2],
+      groove: 'swing',
+    },
+    {
+      name: 'Andalusian i–VII–VI–V',
+      steps: [step(1, 'i', 'm'), step(7, 'VII', ''), step(6, 'VI', ''), step(5, 'V', '')],
+      bars: [0, 1, 2, 3],
+      groove: 'rock',
+    },
   ],
 };
 
@@ -73,7 +117,11 @@ export type KeyChord = {
 };
 
 /** The progression's chords in a given key. */
-export function progressionChords(tonic: number, mode: KeyMode, progression: Progression): KeyChord[] {
+export function progressionChords(
+  tonic: number,
+  mode: KeyMode,
+  progression: Progression,
+): KeyChord[] {
   const scale = keyScale(mode);
   const keyNames = spellScale(tonic, scale).names;
   return progression.steps.map(({ degree, numeral, symbol }) => {
