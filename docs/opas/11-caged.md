@@ -67,7 +67,7 @@ strings.slice(1).every((s, i) => s - strings[i] === STANDARD_GAPS[i])
 
 1. `[0, 2, 2, 1, 0, 0]`, sama kuin koodissa, koska pohjasävel on nauhassa 0.
 2. E-muoto: G on matalalla E-kielellä nauhassa **3**. A-muoto: G on A-kielellä nauhassa **10**.
-3. **G → E → D → C → A**: sama CAGED-kierto, mutta se alkaa G:stä (G C A G E D → …G E D C A).
+3. **G → E → D → C → A** (G-muoto nauhoilla 0–3, E-muoto 3, D-muoto 5, C-muoto 7, A-muoto 10). Järjestys on sama C–A–G–E–D-kierto, mutta se alkaa G:stä.
 4. Ruutu katoaa, koska Open G:n kielten välit eivät ole 5 5 5 4 5, eivätkä muodot siksi toimi.
 
 </details>

@@ -101,7 +101,7 @@ Kun haaste päättyy, tarkistetaan erikseen, syntyikö ennätys. Tieto tallennet
 
 1. **5**: E-kielellä 0 ja 12, A-kielellä 7, D-kielellä 2 ja G-kielellä 9.
 2. `ceil((61 000 − 30 500) / 1000)` = **31** sekuntia.
-3. Tehtävä koskee vain valittua aluetta. Muualta löytyvät oikeat sävelet eivät ole vääriä, joten niistä ei rangaista. Ne vain jätetään huomiotta.
+3. Tehtävä koskee vain valittua aluetta, joten kaikki sen ulkopuoliset napautukset jätetään huomiotta (`if (!area.has(key)) return`). Alueen ulkopuolella on myös soinnun oikeita säveliä, eikä niistä kuulu rangaista.
 4. Indeksit viittaavat asteikon asteisiin (0 = 1, 2 = 3, 4 = 5), joten tehtävissä kysytään enää asteita 1 ja 5, ei 3:a.
 
 </details>
