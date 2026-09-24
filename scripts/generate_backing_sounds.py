@@ -1,132 +1,149 @@
-"""Makes the backing track sounds: electric piano notes and a small drum kit.
+"""Makes the backing track sounds: piano notes and a small drum kit.
 
 Run from the project folder:  python3 scripts/generate_backing_sounds.py
+(needs numpy:  pip install numpy)
 Everything is synthesised here, so there are no sample licences to worry about.
 """
 import math
-import random
-import struct
 import wave
 
+import numpy as np
+
 NAMES = ['c', 'cs', 'd', 'ds', 'e', 'f', 'fs', 'g', 'gs', 'a', 'as', 'b']
+RATE = 22050
+rng = np.random.default_rng(7)
 
 
-def write(path, samples, rate):
-    peak = max(1e-9, max(abs(s) for s in samples))
-    scale = 0.9 / peak if peak > 0.9 else 1.0
-    frames = b''.join(struct.pack('<h', int(max(-1, min(1, s * scale)) * 32767)) for s in samples)
+def write(path, samples):
+    samples = np.asarray(samples, dtype=np.float64)
+    peak = np.max(np.abs(samples)) or 1.0
+    if peak > 0.9:
+        samples = samples * (0.9 / peak)
+    data = (np.clip(samples, -1, 1) * 32767).astype('<i2').tobytes()
     w = wave.open(path, 'wb')
     w.setnchannels(1)
     w.setsampwidth(2)
-    w.setframerate(rate)
-    w.writeframes(frames)
+    w.setframerate(RATE)
+    w.writeframes(data)
     w.close()
 
 
-# --- Electric piano ---------------------------------------------------------------------------
-# A simple FM "tine" sound: the tone is a sine whose phase is wobbled by another sine at the same
-# frequency. The wobble (modulation index) starts high for a bright, bell-like attack and fades,
-# leaving a warm tone. A quiet high "tine ping" adds the typical click at the start.
+def biquad(x, kind, freq, q=0.707):
+    """A standard two-pole filter (RBJ audio EQ cookbook): 'lowpass', 'highpass' or 'bandpass'."""
+    w0 = 2 * math.pi * freq / RATE
+    alpha = math.sin(w0) / (2 * q)
+    cos = math.cos(w0)
+    if kind == 'lowpass':
+        b = [(1 - cos) / 2, 1 - cos, (1 - cos) / 2]
+    elif kind == 'highpass':
+        b = [(1 + cos) / 2, -(1 + cos), (1 + cos) / 2]
+    else:  # bandpass
+        b = [alpha, 0, -alpha]
+    a = [1 + alpha, -2 * cos, 1 - alpha]
+    b = [v / a[0] for v in b]
+    a1, a2 = a[1] / a[0], a[2] / a[0]
+    y = np.zeros_like(x)
+    x1 = x2 = y1 = y2 = 0.0
+    for i, v in enumerate(x):
+        out = b[0] * v + b[1] * x1 + b[2] * x2 - a1 * y1 - a2 * y2
+        x2, x1, y2, y1 = x1, v, y1, out
+        y[i] = out
+    return y
 
-EP_RATE = 22050
-EP_SECONDS = 1.6
+
+# --- Piano ------------------------------------------------------------------------------------
+# Built like a real piano note:
+# - many partials (overtones), each fading at its own speed: high ones fast, low ones slow
+# - piano strings are stiff, so the overtones sit a little above exact multiples ("inharmonicity")
+# - each note has three strings tuned a hair apart, which gives the slow, living shimmer
+# - two-stage decay: a quick drop after the strike, then a long, soft ring
+# - a short, soft thump from the hammer
+
+PIANO_SECONDS = 2.4
 
 
-def epiano(freq):
-    n = int(EP_RATE * EP_SECONDS)
-    out = []
-    for i in range(n):
-        t = i / EP_RATE
-        index = 0.4 + 2.2 * math.exp(-t * 9)          # brightness fades quickly
-        mod = math.sin(2 * math.pi * freq * t)
-        tone = math.sin(2 * math.pi * freq * t + index * mod)
-        ping = 0.25 * math.sin(2 * math.pi * freq * 7.02 * t) * math.exp(-t * 28)
-        attack = min(1.0, i / (EP_RATE * 0.004))
-        decay = math.exp(-t * (1.6 + freq / 700))     # higher notes die away a bit faster
-        release = min(1.0, (n - i) / (EP_RATE * 0.05))  # no click at the end of the file
-        out.append((tone + ping) * attack * decay * release * 0.5)
-    return out
+def piano(freq):
+    n = int(RATE * PIANO_SECONDS)
+    t = np.arange(n) / RATE
+    out = np.zeros(n)
+    inharm = 0.00008 * (freq / 261.6) ** 0.5  # kept small so the pitch stays true
+    base_decay = 0.9 + freq / 500              # higher notes ring for a shorter time
+    for k in range(1, 40):
+        fk = k * freq * math.sqrt(1 + inharm * k * k)
+        if fk > RATE * 0.45:
+            break
+        # Brightness: the hammer excites the lower partials most (a gentle slope, with a small
+        # dip around the 7th-9th partial where the hammer strikes the string).
+        amp = 1 / k ** 1.25 * (0.55 if 7 <= k <= 9 else 1.0)
+        fast = base_decay * (2.5 + 0.5 * k)
+        slow = base_decay * (0.35 + 0.12 * k)
+        env = 0.65 * np.exp(-t * fast) + 0.35 * np.exp(-t * slow)
+        for detune in (-0.0005, 0.0, 0.0005):  # three strings, a fraction of a cent apart
+            phase = rng.uniform(0, 2 * math.pi)
+            out += (amp / 3) * env * np.sin(2 * math.pi * fk * (1 + detune) * t + phase)
+    # Hammer thump: a very short burst of low noise.
+    thump = biquad(rng.uniform(-1, 1, int(RATE * 0.03)), 'lowpass', 900) * 0.25
+    out[: len(thump)] += thump * np.linspace(1, 0, len(thump))
+    attack = np.minimum(1, np.arange(n) / (RATE * 0.002))
+    release = np.minimum(1, (n - np.arange(n)) / (RATE * 0.06))
+    return out * attack * release
 
 
 # --- Drums ------------------------------------------------------------------------------------
 
-DR_RATE = 22050
-rnd = random.Random(7)
-
-
-def noise():
-    return rnd.uniform(-1, 1)
-
 
 def kick():
-    n = int(DR_RATE * 0.45)
-    out, phase = [], 0.0
-    for i in range(n):
-        t = i / DR_RATE
-        freq = 45 + 90 * math.exp(-t * 30)             # pitch drops fast: the "thump"
-        phase += 2 * math.pi * freq / DR_RATE
-        click = noise() * math.exp(-t * 400) * 0.3
-        out.append((math.sin(phase) * math.exp(-t * 7) + click))
-    return out
+    n = int(RATE * 0.45)
+    t = np.arange(n) / RATE
+    freq = 45 + 90 * np.exp(-t * 30)              # the pitch drops fast: the "thump"
+    phase = np.cumsum(2 * math.pi * freq / RATE)
+    click = rng.uniform(-1, 1, n) * np.exp(-t * 400) * 0.3
+    return np.sin(phase) * np.exp(-t * 7) + click
 
 
 def snare():
-    n = int(DR_RATE * 0.3)
-    out, prev = [], 0.0
-    for i in range(n):
-        t = i / DR_RATE
-        x = noise()
-        hp = x - prev                                   # rough high-pass: brighter noise
-        prev = x
-        body = math.sin(2 * math.pi * 185 * t) * math.exp(-t * 30) * 0.6
-        out.append((hp * 0.8 * math.exp(-t * 16) + body))
-    return out
+    n = int(RATE * 0.3)
+    t = np.arange(n) / RATE
+    rattle = biquad(rng.uniform(-1, 1, n), 'highpass', 1800) * np.exp(-t * 16)
+    body = np.sin(2 * math.pi * 185 * t) * np.exp(-t * 30) * 0.6
+    return rattle * 1.1 + body
 
 
 def hat(length, decay):
-    n = int(DR_RATE * length)
-    out, prev = [], 0.0
-    for i in range(n):
-        t = i / DR_RATE
-        x = noise()
-        hp = x - prev
-        prev = x
-        metal = sum(math.sin(2 * math.pi * f * t) for f in (3150, 4320, 5710, 7440)) * 0.08
-        out.append((hp * 0.7 + metal) * math.exp(-t * decay))
-    return out
+    """TR-808 style: six square waves at unrelated pitches, then only the highs are kept."""
+    n = int(RATE * length)
+    t = np.arange(n) / RATE
+    metal = sum(np.sign(np.sin(2 * math.pi * f * t)) for f in (205.3, 304.4, 369.6, 522.7, 540.0, 800.0))
+    metal = biquad(metal, 'bandpass', 8000, q=0.9)
+    metal = biquad(metal, 'highpass', 6500)
+    sizzle = biquad(rng.uniform(-1, 1, n), 'highpass', 7500) * 0.35
+    return (metal + sizzle) * np.exp(-t * decay)
 
 
 def ride():
-    n = int(DR_RATE * 1.2)
-    out, prev = [], 0.0
-    for i in range(n):
-        t = i / DR_RATE
-        x = noise()
-        hp = x - prev
-        prev = x
-        bell = sum(a * math.sin(2 * math.pi * f * t) for f, a in ((2230, 0.5), (3410, 0.35), (5170, 0.25)))
-        out.append((bell * 0.5 * math.exp(-t * 3.2) + hp * 0.25 * math.exp(-t * 5)))
-    return out
+    n = int(RATE * 1.2)
+    t = np.arange(n) / RATE
+    metal = sum(np.sign(np.sin(2 * math.pi * f * t)) for f in (205.3, 304.4, 369.6, 522.7, 540.0, 800.0))
+    metal = biquad(metal, 'bandpass', 5200, q=1.2)
+    bell = sum(a * np.sin(2 * math.pi * f * t) for f, a in ((2230, 0.35), (3410, 0.2)))
+    return metal * 0.5 * np.exp(-t * 3.5) + bell * np.exp(-t * 2.5) * 0.4
 
 
 def rim():
-    n = int(DR_RATE * 0.08)
-    out = []
-    for i in range(n):
-        t = i / DR_RATE
-        tone = math.sin(2 * math.pi * 1650 * t) + 0.5 * math.sin(2 * math.pi * 520 * t)
-        out.append((tone * 0.6 + noise() * 0.3) * math.exp(-t * 70))
-    return out
+    n = int(RATE * 0.08)
+    t = np.arange(n) / RATE
+    tone = np.sin(2 * math.pi * 1650 * t) + 0.5 * np.sin(2 * math.pi * 520 * t)
+    return (tone * 0.6 + rng.uniform(-1, 1, n) * 0.3) * np.exp(-t * 70)
 
 
 if __name__ == '__main__':
     for midi in range(48, 73):  # C3 .. C5
         f = 440 * 2 ** ((midi - 69) / 12)
-        write(f'assets/sounds/epiano/{NAMES[midi % 12]}{midi // 12 - 1}.wav', epiano(f), EP_RATE)
-    write('assets/sounds/drums/kick.wav', kick(), DR_RATE)
-    write('assets/sounds/drums/snare.wav', snare(), DR_RATE)
-    write('assets/sounds/drums/hat.wav', hat(0.08, 55), DR_RATE)
-    write('assets/sounds/drums/hat-open.wav', hat(0.4, 9), DR_RATE)
-    write('assets/sounds/drums/ride.wav', ride(), DR_RATE)
-    write('assets/sounds/drums/rim.wav', rim(), DR_RATE)
+        write(f'assets/sounds/piano/{NAMES[midi % 12]}{midi // 12 - 1}.wav', piano(f) * 0.5)
+    write('assets/sounds/drums/kick.wav', kick())
+    write('assets/sounds/drums/snare.wav', snare())
+    write('assets/sounds/drums/hat.wav', hat(0.09, 45))
+    write('assets/sounds/drums/hat-open.wav', hat(0.45, 7))
+    write('assets/sounds/drums/ride.wav', ride())
+    write('assets/sounds/drums/rim.wav', rim())
     print('done')
