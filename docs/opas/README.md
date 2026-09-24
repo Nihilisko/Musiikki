@@ -22,6 +22,10 @@ Nämä tiedostot selittävät sovelluksen koodin vaihe vaiheelta. Jokaisessa luv
 | 8 | [Omat skaalat, soinnut, triadit ja avoimet vireet](08-soinnut-ja-omat-skaalat.md) | Tietorakenteet, rekursiivinen haku, pisteytys, käännökset, datan tarkistus |
 | 9 | [Teoriatyökalut](09-teoriatyokalut.md) | Tekstin jäsentäminen, sävellajin arvaus, transponointi, capo, eroteltu unioni |
 | 10 | [Taustasoitto](10-taustasoitto.md) | Itse tehdyt äänet, askelruudukko ja svengi, inhimillisyys, häivytys, selaimen rajat, bassolinjat |
+| 11 | [CAGED](11-caged.md) | Siirrettävät muodot, suhteellinen kirjoitus, vireen tarkistus, skaala muodon ympärillä |
+| 12 | [Korvaharjoitukset](12-korvaharjoitukset.md) | Refaktorointi, yhteinen koukku, vanhan tallenteen luku, ajastettu jono, äänenkuljetus |
+| 13 | [Opiskelupeli](13-opiskelupeli.md) | Valinnaiset propsit, Set ja Map, säännöt erillään näkymästä, aika tavoitehetkestä, satunnaisuuden testaus |
+| 14 | [Slide-intonaatiotreeni](14-slide-treeni.md) | Koodin uudelleenkäyttö, oletusarvot, puhtaat funktiot, palaute monella tavalla |
 
 ## Sovelluksen ajaminen
 
@@ -48,4 +52,7 @@ npx tsc --noEmit   # tarkistaa tyypit: löytää virheet ennen kuin sovellus kaa
 | **Svengi (swing)** | Iskun "ja" osuu myöhemmäksi kuin puoliväliin: pitkä–lyhyt |
 | **Konvoluutio** | Laskutoimitus, jolla kuivaan ääneen lisätään huoneen kaiku |
 | **Eroteltu unioni** | Tyyppi, jonka vaihtoehdot erotetaan kentällä (esim. `type: 'list'`) |
+| **Refaktorointi** | Koodin rakenteen parantaminen niin, että se toimii kuten ennen, esim. toistuvan koodin siirto yhteen paikkaan |
+| **Puhdas funktio** | Funktio, joka laskee tuloksen pelkistä parametreistaan eikä muuta mitään muuta; helppo testata |
+| **Suhteellinen sävelkorva** | Kyky tunnistaa sävel suhteessa sävellajiin (esim. "tämä on 5") |
 | **JSX** | HTML:ää muistuttava merkintätapa JavaScriptin sisällä: `<Text>Hei</Text>` |
