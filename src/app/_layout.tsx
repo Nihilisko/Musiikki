@@ -169,6 +169,10 @@ function AppStack() {
           options={{ headerShown: false, animation: 'slide_from_bottom' }}
         />
         <Stack.Screen
+          name="neck-game"
+          options={{ headerShown: false, animation: 'slide_from_bottom' }}
+        />
+        <Stack.Screen
           name="triads"
           options={{ headerShown: false, animation: 'slide_from_bottom' }}
         />

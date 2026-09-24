@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { noteName, noteNameWithOctave } from '../music/notes';
 import { cellKey } from '../music/positions';
@@ -17,6 +17,14 @@ export type Highlight = {
 };
 
 export type LabelMode = 'names' | 'degrees' | 'both';
+
+/** Game marks on a cell: tapped right, tapped wrong, or a right one that was not found. */
+export type CellMark = 'right' | 'wrong' | 'missed';
+const MARK_COLORS: Record<CellMark, string> = {
+  right: '#2e9d57',
+  wrong: '#d93a3a',
+  missed: '#e0a526',
+};
 
 export type FretboardProps = {
   /** Strings from lowest to highest, as MIDI numbers. */
@@ -54,6 +62,10 @@ export type FretboardProps = {
   wood?: Wood;
   /** Colours for the root, scale notes and blue notes. */
   noteColors?: NoteColors;
+  /** Makes every cell tappable (the neck game). */
+  onCellPress?: (string: number, fret: number) => void;
+  /** Game marks by cell (see `cellKey`), drawn with the note name instead of normal notes. */
+  cellMarks?: Map<string, CellMark>;
 };
 
 const FRET_WIDTH = 46;
@@ -82,6 +94,8 @@ export default function Fretboard({
   noteFill,
   wood = DEFAULT_WOOD,
   noteColors = DEFAULT_NOTE_COLORS,
+  onCellPress,
+  cellMarks,
 }: FretboardProps) {
   const scrollRef = useRef<ScrollView>(null);
   // The neck looks the same in both themes; only the text around it follows the theme.
@@ -159,17 +173,33 @@ export default function Fretboard({
               <View key={index} style={styles.stringRow}>
                 <View style={[styles.stringLine, { backgroundColor: wood.metal }]} />
                 {fretNumbers.map((fret) => (
-                  <View
+                  <Pressable
                     key={fret}
+                    disabled={!onCellPress}
+                    onPress={() => onCellPress?.(index, fret)}
+                    accessibilityLabel={
+                      onCellPress ? `String ${index + 1}, fret ${fret}` : undefined
+                    }
                     style={[
                       styles.cell,
                       { width: cellWidth(fret) },
                       fret === 0
                         ? styles.openCell
                         : [styles.fretCell, { borderRightColor: wood.metal }],
+                      // In the game, frets outside the task's area are shaded.
+                      onCellPress &&
+                        focusCells &&
+                        !focusCells.has(cellKey(index, fret)) &&
+                        styles.shaded,
                     ]}
                   >
-                    {(!visibleCells || visibleCells.has(cellKey(index, fret))) && (
+                    {cellMarks?.has(cellKey(index, fret)) && (
+                      <MarkDot
+                        mark={cellMarks.get(cellKey(index, fret))!}
+                        name={noteNames?.[pitchClass(midi + fret)] ?? noteName(midi + fret, flats)}
+                      />
+                    )}
+                    {!cellMarks && (!visibleCells || visibleCells.has(cellKey(index, fret))) && (
                       <View
                         style={focusCells && !focusCells.has(cellKey(index, fret)) && styles.faded}
                       >
@@ -188,7 +218,7 @@ export default function Fretboard({
                         />
                       </View>
                     )}
-                  </View>
+                  </Pressable>
                 ))}
               </View>
             ))}
@@ -259,6 +289,24 @@ function NoteDot({
   );
 }
 
+/** A game mark: a filled dot (right / wrong) or a ring (a note that was missed). */
+function MarkDot({ mark, name }: { mark: CellMark; name: string }) {
+  const color = MARK_COLORS[mark];
+  const missed = mark === 'missed';
+  return (
+    <View
+      style={[
+        styles.note,
+        missed
+          ? { borderWidth: 3, borderColor: color, backgroundColor: '#00000055' }
+          : { backgroundColor: color },
+      ]}
+    >
+      <Text style={[styles.noteText, { color: '#ffffff' }]}>{name}</Text>
+    </View>
+  );
+}
+
 type NoteTextProps = { mode: LabelMode; name: string; degree: string; color: string };
 
 function NoteText({ mode, name, degree, color }: NoteTextProps) {
@@ -274,6 +322,9 @@ function NoteText({ mode, name, degree, color }: NoteTextProps) {
 }
 
 const styles = StyleSheet.create({
+  shaded: {
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+  },
   wrapper: {
     flexDirection: 'row',
   },
