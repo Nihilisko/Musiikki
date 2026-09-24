@@ -1,7 +1,7 @@
 """Makes the backing track sounds: piano chords, bass notes and a small drum kit.
 
 Run from the project folder:  python3 scripts/generate_backing_sounds.py
-Only one group:                python3 scripts/generate_backing_sounds.py bass   (or chords, drums)
+Only one group:                python3 scripts/generate_backing_sounds.py bass   (or chords, notes, drums)
 (needs numpy:  pip install numpy)
 Everything is synthesised here, so there are no sample licences to worry about.
 """
@@ -262,11 +262,40 @@ def write_bass_index():
     open('src/audio/bassSounds.ts', 'w').write('\n'.join(lines) + '\n')
 
 
+# --- Single piano notes (ear training) ---------------------------------------------------------
+
+NOTE_LOW = 48  # C3
+NOTE_HIGH = 84  # C6
+NOTE_SECONDS = 1.8
+
+
+def piano_note(midi):
+    n = int(RATE * NOTE_SECONDS)
+    f = 440 * 2 ** ((midi - 69) / 12)
+    out = add_room(piano(f, NOTE_SECONDS), 0.22)
+    release = np.minimum(1, (n - np.arange(n)) / (RATE * 0.3))
+    return out * release * 0.5
+
+
+def write_note_index():
+    lines = [
+        '// Made by scripts/generate_backing_sounds.py - do not edit by hand.',
+        '// Single piano notes by MIDI note number (60 = middle C), for ear training.',
+        '',
+        'export const PIANO_NOTES: Record<number, number> = {',
+    ]
+    for midi in range(NOTE_LOW, NOTE_HIGH + 1):
+        name = f'{NAMES[midi % 12]}{midi // 12 - 1}'
+        lines.append(f"  {midi}: require('../../assets/sounds/piano/{name}.wav'),")
+    lines.append('};')
+    open('src/audio/pianoNotes.ts', 'w').write('\n'.join(lines) + '\n')
+
+
 if __name__ == '__main__':
     import os
     import sys
 
-    groups = sys.argv[1:] or ['chords', 'bass', 'drums']
+    groups = sys.argv[1:] or ['chords', 'bass', 'notes', 'drums']
     if 'chords' in groups:
         os.makedirs('assets/sounds/chords', exist_ok=True)
         for root in range(12):
@@ -279,6 +308,11 @@ if __name__ == '__main__':
             f = 440 * 2 ** ((midi - 69) / 12)
             write(f'assets/sounds/bass/{NAMES[midi % 12]}{midi // 12 - 1}.wav', bass(f) * 0.6)
         write_bass_index()
+    if 'notes' in groups:
+        os.makedirs('assets/sounds/piano', exist_ok=True)
+        for midi in range(NOTE_LOW, NOTE_HIGH + 1):
+            write(f'assets/sounds/piano/{NAMES[midi % 12]}{midi // 12 - 1}.wav', piano_note(midi))
+        write_note_index()
     if 'drums' not in groups:
         print('done')
         sys.exit()

@@ -105,6 +105,14 @@ function AppStack() {
           }}
         />
         <Stack.Screen
+          name="ear-training"
+          options={{ title: 'Ear training', headerLeft: () => <BackButton label="Menu" /> }}
+        />
+        <Stack.Screen
+          name="intervals"
+          options={{ title: 'Intervals', headerLeft: () => <BackButton label="Back" /> }}
+        />
+        <Stack.Screen
           name="backing"
           options={{ title: 'Backing tracks', headerLeft: () => <BackButton label="Menu" /> }}
         />
