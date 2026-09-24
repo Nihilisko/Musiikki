@@ -3,16 +3,21 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { useBacking } from '../audio/useBacking';
+import BassLineBoard, { type BoardNote } from '../components/BassLineBoard';
 import ChipRow from '../components/ChipRow';
 import Dropdown from '../components/Dropdown';
 import KeyPicker from '../components/KeyPicker';
 import Stepper from '../components/Stepper';
 import { GROOVES, grooveById, chordSoundName } from '../music/backing';
-import { bassLine } from '../music/bassLines';
+import { fingerBassLine, type FretPosition } from '../music/bassFingering';
+import { bassLine, type BassNote } from '../music/bassLines';
 import type { KeyMode } from '../music/circle';
 import { clampBpm } from '../music/metronome';
 import { keyScale, progressionChords, PROGRESSIONS } from '../music/progressions';
-import { spellScale } from '../music/spelling';
+import { noteName } from '../music/notes';
+import { pitchClass } from '../music/scales';
+import { spellChord, spellScale } from '../music/spelling';
+import { useInstrument } from '../state/InstrumentContext';
 import type { Colors } from '../theme/colors';
 import { useTheme, useThemedStyles } from '../theme/ThemeContext';
 
@@ -31,6 +36,8 @@ export default function JamScreen() {
   const [bpm, setBpm] = useState(grooveById(grooveId).defaultBpm);
   const [drumMix, setDrumMix] = useState(1);
   const [bassOn, setBassOn] = useState(true);
+  const [pickedBar, setPickedBar] = useState(0); // bar whose bass line is shown when stopped
+  const { instrument, tuning } = useInstrument();
 
   const mode = MODES[modeIndex];
   const progressions = PROGRESSIONS[mode];
@@ -55,7 +62,7 @@ export default function JamScreen() {
     [chordKey, progression, grooveId],
   );
 
-  const { running, bar, beat, toggle } = useBacking({
+  const { running, bar, beat, step, toggle } = useBacking({
     groove,
     bpm,
     bars,
@@ -71,6 +78,25 @@ export default function JamScreen() {
     setGrooveId(suited.id);
     setBpm(suited.defaultBpm);
   }
+
+  // The bass line on the neck: the bar playing now, or the bar you tapped when stopped.
+  // On a bass the neck has your tuning; on other instruments a 4-string bass (a guitar's four
+  // lowest strings are the same notes an octave higher, so the shapes work there too).
+  const shownBar = running ? Math.max(0, bar) : Math.min(pickedBar, bars.length - 1);
+  const boardStrings = instrument.id === 'bass' ? tuning.strings : STANDARD_BASS;
+  const shownChord = chords[progression.bars[shownBar]];
+  const shownLine = bars[shownBar].bass;
+  const positions = fingerBassLine(
+    shownLine.map((n) => n.midi),
+    boardStrings,
+  );
+  const sounding = running && bar === shownBar ? lastIndexAtOrBefore(shownLine, step) : -1;
+  const boardNotes = groupByPosition(shownLine, positions, sounding);
+  const chordNames = spellChord(shownChord.root, shownChord.type).names;
+  const keyNames = spellScale(tonic, keyScale(mode)).names;
+  const lineNames = shownLine
+    .map((n) => chordNames[pitchClass(n.midi)] ?? keyNames[pitchClass(n.midi)] ?? noteName(n.midi))
+    .join(' – ');
 
   const current = bar >= 0 ? chords[progression.bars[bar]] : undefined;
   const next = bar >= 0 ? chords[progression.bars[(bar + 1) % progression.bars.length]] : undefined;
@@ -99,20 +125,40 @@ export default function JamScreen() {
         {progression.bars.map((chordIndex, i) => {
           const chord = chords[chordIndex];
           const active = i === bar;
+          const picked = !running && i === shownBar;
           return (
-            <View
+            <Pressable
               key={i}
-              style={[styles.bar, active && { backgroundColor: chord.color }]}
+              onPress={() => setPickedBar(i)}
+              disabled={running}
+              style={[
+                styles.bar,
+                active && { backgroundColor: chord.color },
+                picked && { borderColor: chord.color },
+              ]}
               accessibilityLabel={`Bar ${i + 1}: ${chord.name}`}
             >
               <Text style={[styles.barChord, active && styles.barChordActive]}>{chord.name}</Text>
               <Text style={[styles.barNumeral, active && styles.barChordActive]}>
                 {chord.numeral}
               </Text>
-            </View>
+            </Pressable>
           );
         })}
       </View>
+
+      <View style={styles.bassHeader}>
+        <Text style={styles.sectionLabel}>
+          Bass line · bar {shownBar + 1} · {shownChord.name}
+        </Text>
+        <Text style={styles.hint}>{lineNames}</Text>
+      </View>
+      <BassLineBoard
+        strings={boardStrings}
+        stringNames={boardStrings.map((m) => noteName(m, tuning.flats))}
+        notes={boardNotes}
+      />
+      {!running && <Text style={styles.hint}>Tap a bar to see its bass line.</Text>}
 
       <View style={styles.row}>
         <KeyPicker root={tonic} rootName={tonicName} onChange={setTonic} />
@@ -179,6 +225,37 @@ export default function JamScreen() {
   );
 }
 
+const STANDARD_BASS = [28, 33, 38, 43];
+
+/** Index of the last note that has started by this step (-1 before the first). */
+function lastIndexAtOrBefore(line: BassNote[], step: number): number {
+  let found = -1;
+  line.forEach((n, i) => {
+    if (n.step <= step) found = i;
+  });
+  return found;
+}
+
+/** One dot per place on the neck, numbered with every time it is played ("2 8"). */
+function groupByPosition(
+  line: BassNote[],
+  positions: FretPosition[],
+  sounding: number,
+): BoardNote[] {
+  const groups = new Map<string, BoardNote>();
+  positions.forEach((position, i) => {
+    const key = `${position.string}:${position.fret}`;
+    const group = groups.get(key);
+    if (group) {
+      group.label += ` ${i + 1}`;
+      group.active ||= i === sounding;
+    } else {
+      groups.set(key, { position, label: String(i + 1), active: i === sounding });
+    }
+  });
+  return [...groups.values()];
+}
+
 function makeStyles(colors: Colors) {
   return StyleSheet.create({
     content: {
@@ -221,7 +298,13 @@ function makeStyles(colors: Colors) {
       flexWrap: 'wrap',
       gap: 6,
     },
+    bassHeader: {
+      gap: 10,
+      marginBottom: -6,
+    },
     bar: {
+      borderWidth: 2,
+      borderColor: 'transparent',
       width: '23.5%',
       paddingVertical: 8,
       alignItems: 'center',

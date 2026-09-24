@@ -44,14 +44,14 @@ function soundSource(name: string): { source: number; players: number } | undefi
 
 /**
  * Phone browsers only let a sound play later if it was first started by a tap. So on the web,
- * start every player silently and stop it at once while the tap is still going on.
+ * start every player silently while the tap is still going on. It is left to play to its end
+ * at volume 0: stopping it at once would make the browser report an error.
  */
 function unlockPool(pool: Pool) {
   if (Platform.OS !== 'web') return;
   pool.players.forEach((p) => {
     p.volume = 0;
     p.play();
-    p.pause();
   });
 }
 
