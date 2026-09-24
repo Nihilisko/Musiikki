@@ -79,12 +79,20 @@ const triad = TRIADS[`${third},${fifth}`]; // '4,7' = duuri, '3,7' = molli, '3,6
 
 ### Lohkot ja niiden piirtäminen (`note.tsx`)
 
-```ts
+```tsx
 switch (block.type) {
-  case 'heading': return <Text style={styles.heading}>{block.text}</Text>;
-  case 'list':    return block.items.map(...);
-  case 'table':   return <Table rows={block.rows} />;
-  default:        return <RichText text={block.text} />;
+  case 'heading':
+    return <Text style={styles.heading}>{block.text}</Text>;
+  case 'text':
+    return <RichText text={block.text} style={styles.text} boldStyle={styles.bold} />;
+  case 'list':
+    return (
+      <View style={styles.list}>
+        {block.items.map((item, i) => ( /* • ja rivin teksti */ ))}
+      </View>
+    );
+  case 'table':
+    return <View style={styles.table}>{/* otsikkorivi ja rivit */}</View>;
 }
 ```
 
