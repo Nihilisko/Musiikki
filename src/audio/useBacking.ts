@@ -1,5 +1,6 @@
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
 import { useEffect, useRef, useState } from 'react';
+import { Platform } from 'react-native';
 
 import type { Drum, Groove } from '../music/backing';
 import { beatInterval } from '../music/metronome';
@@ -29,6 +30,19 @@ function makePool(source: number): Pool {
     players: Array.from({ length: PLAYERS_PER_SOUND }, () => createAudioPlayer(source)),
     next: 0,
   };
+}
+
+/**
+ * Phone browsers only let a sound play later if it was first started by a tap. So on the web,
+ * start every player silently and stop it at once while the tap is still going on.
+ */
+function unlockPool(pool: Pool) {
+  if (Platform.OS !== 'web') return;
+  pool.players.forEach((p) => {
+    p.volume = 0;
+    p.play();
+    p.pause();
+  });
 }
 
 function removePool(pool: Pool) {
@@ -88,7 +102,10 @@ export function useBacking({ groove, bpm, bars, pianoVolume, drumVolume }: Optio
       }
     }
     for (const name of wanted) {
-      if (!pools[name] && CHORD_SOUNDS[name]) pools[name] = makePool(CHORD_SOUNDS[name]);
+      if (!pools[name] && CHORD_SOUNDS[name]) {
+        pools[name] = makePool(CHORD_SOUNDS[name]);
+        unlockPool(pools[name]); // right after a tap on a key or progression
+      }
     }
   }, [chordList]);
 
@@ -177,5 +194,14 @@ export function useBacking({ groove, bpm, bars, pianoVolume, drumVolume }: Optio
     };
   }, [running]);
 
-  return { running, ...position, toggle: () => setRunning((r) => !r) };
+  function toggle() {
+    if (!running) {
+      // Called straight from the Play tap, so the browser lets these sounds play later too.
+      Object.values(drums.current ?? {}).forEach(unlockPool);
+      Object.values(chords.current).forEach(unlockPool);
+    }
+    setRunning((r) => !r);
+  }
+
+  return { running, ...position, toggle };
 }
