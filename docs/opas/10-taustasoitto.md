@@ -15,7 +15,7 @@ Vaiheessa 11 sovellus oppi soittamaan taustaa, jonka päälle harjoitellaan: **d
 | `music/strums.ts` | Rämpytyskuviot ja mitkä sopivat millekin kompille |
 | `audio/useBacking.ts` | Soittomoottori: lataa äänet, ajoittaa lyönnit, häivyttää |
 | `app/jam.tsx` | Chord progressions -näkymä |
-| `components/BassLineBoard.tsx`, `components/StrumPatternView.tsx` | Bassonauha ja rämpytysnuolet |
+| `components/MiniNeck.tsx`, `components/StrumPatternView.tsx` | Pieni kaulakuva (bassonauha) ja rämpytysnuolet |
 
 ## 2. Miksi näin
 

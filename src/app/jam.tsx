@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { useBacking } from '../audio/useBacking';
-import BassLineBoard, { type BoardNote } from '../components/BassLineBoard';
+import MiniNeck, { type BoardNote } from '../components/MiniNeck';
 import ChipRow from '../components/ChipRow';
 import Dropdown from '../components/Dropdown';
 import KeyPicker from '../components/KeyPicker';
@@ -162,7 +162,7 @@ export default function JamScreen() {
             </Text>
             <Text style={styles.hint}>{lineNames}</Text>
           </View>
-          <BassLineBoard
+          <MiniNeck
             strings={boardStrings}
             stringNames={boardStrings.map((m) => noteName(m, tuning.flats))}
             notes={boardNotes}

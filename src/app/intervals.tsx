@@ -1,21 +1,45 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useIntervalPlayer } from '../audio/useIntervalPlayer';
 import ChipRow from '../components/ChipRow';
+import MiniNeck from '../components/MiniNeck';
+import { intervalShape } from '../music/intervalShape';
 import {
   DIRECTIONS,
   INTERVAL_LEVELS,
+  INTERVALS,
   intervalInfo,
   makeQuestion,
   type IntervalQuestion,
 } from '../music/intervals';
+import { noteName } from '../music/notes';
+import {
+  cleanStats,
+  EMPTY_STATS,
+  readyForNext,
+  recordAnswer,
+  type PracticeStats,
+} from '../music/practiceStats';
+import { useInstrument } from '../state/InstrumentContext';
+import { loadJson, saveJson } from '../state/storage';
 import type { Colors } from '../theme/colors';
 import { useTheme, useThemedStyles } from '../theme/ThemeContext';
 
 const RIGHT = '#2e9d57';
 const WRONG = '#d93a3a';
+/** The "Custom" choice comes after the levels. */
+const CUSTOM = INTERVAL_LEVELS.length;
+const STORAGE_KEY = 'ear-intervals';
+
+/** What is saved on the phone: the last settings and the statistics of each level. */
+type Saved = {
+  levelIndex: number;
+  directionIndex: number;
+  custom: number[];
+  stats: Record<string, PracticeStats>;
+};
 
 // Interval ear training: two notes play, you pick the interval between them.
 export default function IntervalsScreen() {
@@ -23,13 +47,52 @@ export default function IntervalsScreen() {
   const styles = useThemedStyles(makeStyles);
   const { play } = useIntervalPlayer();
 
+  const { instrument, tuning } = useInstrument();
+
   const [levelIndex, setLevelIndex] = useState(0);
   const [directionIndex, setDirectionIndex] = useState(0);
+  const [custom, setCustom] = useState<number[]>([3, 4, 7]);
+  const [stats, setStats] = useState<Record<string, PracticeStats>>({});
+  const [loaded, setLoaded] = useState(false);
   const [question, setQuestion] = useState<IntervalQuestion | null>(null);
   const [answer, setAnswer] = useState<number | null>(null); // the chosen interval
   const [score, setScore] = useState({ right: 0, total: 0, streak: 0 });
 
-  const level = INTERVAL_LEVELS[levelIndex];
+  // Read the saved settings and statistics once; check them, the data may be old.
+  useEffect(() => {
+    loadJson<Partial<Saved>>(STORAGE_KEY).then((saved) => {
+      if (saved) {
+        const index = (n: unknown, max: number) =>
+          typeof n === 'number' && n >= 0 && n <= max ? n : 0;
+        setLevelIndex(index(saved.levelIndex, CUSTOM));
+        setDirectionIndex(index(saved.directionIndex, DIRECTIONS.length - 1));
+        const picked = Array.isArray(saved.custom)
+          ? saved.custom.filter((n) => INTERVALS.some((i) => i.semitones === n))
+          : [];
+        if (picked.length >= 2) setCustom(picked);
+        const cleaned: Record<string, PracticeStats> = {};
+        Object.entries(saved.stats ?? {}).forEach(
+          ([key, value]) => (cleaned[key] = cleanStats(value)),
+        );
+        setStats(cleaned);
+      }
+      setLoaded(true);
+    });
+  }, []);
+
+  // Save whenever something changes (but not before the saved data has been read).
+  useEffect(() => {
+    if (loaded)
+      saveJson(STORAGE_KEY, { levelIndex, directionIndex, custom, stats } satisfies Saved);
+  }, [loaded, levelIndex, directionIndex, custom, stats]);
+
+  const isCustom = levelIndex === CUSTOM;
+  const intervals = isCustom
+    ? [...custom].sort((a, b) => a - b)
+    : INTERVAL_LEVELS[levelIndex].intervals;
+  const statsKey = isCustom ? 'custom' : `level${levelIndex + 1}`;
+  const levelStats = stats[statsKey] ?? EMPTY_STATS;
+  const levelName = isCustom ? 'Custom' : INTERVAL_LEVELS[levelIndex].name;
   const direction = DIRECTIONS[directionIndex].id;
 
   function reset() {
@@ -38,8 +101,23 @@ export default function IntervalsScreen() {
     setScore({ right: 0, total: 0, streak: 0 });
   }
 
+  function chooseLevel(i: number) {
+    setLevelIndex(i);
+    reset();
+  }
+
+  /** Custom mode: turn an interval on or off; at least two stay on. */
+  function toggleCustom(semitones: number) {
+    if (custom.includes(semitones)) {
+      if (custom.length > 2) setCustom(custom.filter((s) => s !== semitones));
+    } else {
+      setCustom([...custom, semitones]);
+    }
+    reset();
+  }
+
   function next() {
-    const q = makeQuestion(level.intervals, direction, question ?? undefined);
+    const q = makeQuestion(intervals, direction, question ?? undefined);
     setQuestion(q);
     setAnswer(null);
     play(q); // straight from the tap, so a phone browser allows the sound
@@ -54,6 +132,7 @@ export default function IntervalsScreen() {
       total: s.total + 1,
       streak: right ? s.streak + 1 : 0,
     }));
+    setStats((all) => ({ ...all, [statsKey]: recordAnswer(all[statsKey] ?? EMPTY_STATS, right) }));
   }
 
   const answered = question !== null && answer !== null;
@@ -62,6 +141,12 @@ export default function IntervalsScreen() {
   const song =
     info && (question?.direction === 'down' ? (info.songDown ?? info.songUp) : info.songUp);
   const percent = score.total ? Math.round((score.right / score.total) * 100) : 0;
+  const allTimePercent = levelStats.total
+    ? Math.round((levelStats.right / levelStats.total) * 100)
+    : 0;
+  const showNextLevel = !isCustom && levelIndex < CUSTOM - 1 && readyForNext(levelStats);
+  // Where the interval is on your instrument, shown after you answer.
+  const shape = answered ? intervalShape(question.low, question.high, tuning.strings) : null;
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
@@ -75,16 +160,45 @@ export default function IntervalsScreen() {
 
       <Text style={styles.sectionLabel}>Level</Text>
       <ChipRow
-        options={INTERVAL_LEVELS.map((l) => l.name)}
+        options={[...INTERVAL_LEVELS.map((l) => l.name), 'Custom']}
         selected={levelIndex}
-        onSelect={(i) => {
-          setLevelIndex(i);
-          reset();
-        }}
+        onSelect={chooseLevel}
       />
-      <Text style={styles.hint}>
-        {level.intervals.map((s) => intervalInfo(s).short).join('  ')}
-      </Text>
+      {isCustom ? (
+        <View style={styles.customGrid}>
+          {INTERVALS.map((i) => {
+            const on = custom.includes(i.semitones);
+            return (
+              <Pressable
+                key={i.semitones}
+                onPress={() => toggleCustom(i.semitones)}
+                style={[styles.customChip, on && styles.customOn]}
+                accessibilityLabel={`${i.name} ${on ? 'on' : 'off'}`}
+              >
+                <Text style={[styles.customText, on && styles.customTextOn]}>{i.short}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : (
+        <Text style={styles.hint}>{intervals.map((s) => intervalInfo(s).short).join('  ')}</Text>
+      )}
+      {levelStats.total > 0 && (
+        <Text style={styles.hint}>
+          All time on {levelName}: {allTimePercent}% right of {levelStats.total}
+        </Text>
+      )}
+      {showNextLevel && (
+        <Pressable
+          onPress={() => chooseLevel(levelIndex + 1)}
+          style={({ pressed }) => [styles.nextLevel, pressed && styles.pressed]}
+        >
+          <Ionicons name="trophy-outline" size={20} color={colors.onBrand} />
+          <Text style={styles.nextLevelText}>
+            17+ of your last 20 right. Try {INTERVAL_LEVELS[levelIndex + 1].name}!
+          </Text>
+        </Pressable>
+      )}
 
       <Text style={styles.sectionLabel}>Direction</Text>
       <ChipRow
@@ -111,6 +225,24 @@ export default function IntervalsScreen() {
             </Text>
             {!correct && <Text style={styles.hint}>You chose {intervalInfo(answer!).name}.</Text>}
             {song && <Text style={styles.hint}>Remember it: “{song}”</Text>}
+          </View>
+        )}
+        {shape && (
+          <View style={styles.neck}>
+            <Text style={styles.hint}>
+              On your {instrument.name.toLowerCase()}
+              {shape.octaves !== 0 &&
+                ` (${Math.abs(shape.octaves)} octave${Math.abs(shape.octaves) > 1 ? 's' : ''} ${shape.octaves < 0 ? 'lower' : 'higher'})`}
+              : R = root, {info!.short} = the other note
+            </Text>
+            <MiniNeck
+              strings={tuning.strings}
+              stringNames={tuning.strings.map((m) => noteName(m, tuning.flats))}
+              notes={[
+                { position: shape.low, label: 'R', active: true },
+                { position: shape.high, label: info!.short, active: false },
+              ]}
+            />
           </View>
         )}
         <View style={styles.buttons}>
@@ -142,7 +274,7 @@ export default function IntervalsScreen() {
       </View>
 
       <View style={styles.grid}>
-        {level.intervals.map((s) => {
+        {intervals.map((s) => {
           const i = intervalInfo(s);
           const isAnswer = answered && s === question!.semitones;
           const isWrongPick = answered && s === answer && !correct;
@@ -279,6 +411,49 @@ function makeStyles(colors: Colors) {
       alignItems: 'center',
       borderRadius: 12,
       backgroundColor: colors.surface,
+    },
+    customGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
+    },
+    customChip: {
+      width: '15%',
+      paddingVertical: 8,
+      alignItems: 'center',
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    customOn: {
+      backgroundColor: colors.accent,
+      borderColor: colors.accent,
+    },
+    customText: {
+      color: colors.textMuted,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    customTextOn: {
+      color: colors.onAccent,
+    },
+    nextLevel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      padding: 12,
+      borderRadius: 12,
+      backgroundColor: colors.brand,
+    },
+    nextLevelText: {
+      flex: 1,
+      color: colors.onBrand,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    neck: {
+      alignSelf: 'stretch',
+      gap: 6,
     },
     idle: {
       opacity: 0.5,

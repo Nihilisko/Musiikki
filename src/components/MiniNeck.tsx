@@ -8,9 +8,9 @@ import { useTheme, useThemedStyles } from '../theme/ThemeContext';
 
 export type BoardNote = {
   position: FretPosition;
-  /** Order numbers in the bar, e.g. "2 8" when the note is played twice. */
+  /** Short text on the dot, e.g. order numbers in a bass line ("2 8") or "R". */
   label: string;
-  /** Sounding now. */
+  /** Filled in: the note sounding now, or the root of an interval. */
   active: boolean;
 };
 
@@ -30,10 +30,11 @@ const BOTTOM = 22; // fret numbers
 const DOT = 12;
 
 /**
- * A short piece of bass neck with one bar's bass line on it: each note in its place,
- * numbered in playing order, the note sounding now filled in.
+ * A short piece of neck with a few notes on it, each in its place with a short label:
+ * a bass line numbered in playing order (the note sounding now filled in), or the two notes
+ * of an interval.
  */
-export default function BassLineBoard({ strings, stringNames, notes }: Props) {
+export default function MiniNeck({ strings, stringNames, notes }: Props) {
   const { colors } = useTheme();
   const { wood } = useWood();
   const styles = useThemedStyles(makeStyles);
@@ -54,7 +55,7 @@ export default function BassLineBoard({ strings, stringNames, notes }: Props) {
   const boardLeft = fretLineX(0);
 
   return (
-    <View style={styles.wrap} accessibilityLabel="Bass line on the neck">
+    <View style={styles.wrap} accessibilityLabel="Notes on the neck">
       <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
         <Rect
           x={boardLeft}
