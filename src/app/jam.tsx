@@ -73,9 +73,9 @@ export default function JamScreen() {
     groove,
     bpm,
     bars,
-    pianoVolume: 0.55,
+    pianoVolume: 0.8,
     drumVolume: MIX[drumMix],
-    bassVolume: bassOn ? 0.9 : 0,
+    bassVolume: bassOn ? 0.55 : 0,
   });
 
   // Picking a progression also picks the groove that suits it (you can still change it).

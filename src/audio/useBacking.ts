@@ -24,13 +24,24 @@ const DRUM_SOUNDS: Record<Drum, number> = {
 
 /** Clicks before the band comes in, so you can get ready. */
 const COUNT_IN_BEATS = 4;
-/** How long a chord takes to fade out when the next chord comes, and a bass note. */
-const CHORD_FADE_MS = 250;
-const BASS_FADE_MS = 60;
-const FADE_STEPS = 5;
+/** How long a sound takes to fade out: an old chord when the next chord comes, a chord
+ *  when it is struck again (like a piano string that is hit while it still rings), a bass note. */
+const CHORD_CHANGE_FADE_MS = 600;
+const CHORD_RESTRIKE_FADE_MS = 350;
+const BASS_FADE_MS = 80;
+const FADE_STEPS = 10;
 
-/** `fading` is the timer of a soft fade-out that is going on, if any. */
-type Pool = { players: AudioPlayer[]; next: number; fading?: ReturnType<typeof setTimeout> };
+// A little human looseness, so the band doesn't sound like a machine. Each hit is a bit
+// louder or softer, and slightly late: the drums keep the time, the bass sits right with them,
+// and the piano plays just behind the beat, like a relaxed pianist.
+const VOLUME_WOBBLE = { drum: 0.12, chord: 0.1, bass: 0.08 };
+const LATE_MS = { drum: [0, 6], chord: [8, 24], bass: [0, 8] } as const;
+
+const wobble = (volume: number, amount: number) =>
+  Math.min(1, volume * (1 + (Math.random() * 2 - 1) * amount));
+const lateness = ([min, max]: readonly [number, number]) => min + Math.random() * (max - min);
+
+type Pool = { players: AudioPlayer[]; next: number };
 
 /** Sound names: "drum:kick", "chord:a-7", "bass:33". */
 function soundSource(name: string): { source: number; players: number } | undefined {
@@ -56,7 +67,6 @@ function unlockPool(pool: Pool) {
 }
 
 function removePool(pool: Pool) {
-  clearTimeout(pool.fading);
   pool.players.forEach((p) => p.remove());
 }
 
@@ -123,35 +133,56 @@ export function useBacking({ groove, bpm, bars, pianoVolume, drumVolume, bassVol
     }
   }, [wantedList]);
 
-  function play(name: string, volume: number) {
+  // Fade-outs going on, one timer per player.
+  const fades = useRef(new Map<AudioPlayer, ReturnType<typeof setTimeout>>());
+
+  /** Fade players out, then stop them: much softer than cutting a sound off. */
+  function fadeOut(players: AudioPlayer[], ms: number) {
+    for (const player of players) {
+      clearTimeout(fades.current.get(player));
+      const start = player.volume;
+      let stepIndex = 0;
+      const fadeStep = () => {
+        stepIndex += 1;
+        const left = 1 - stepIndex / FADE_STEPS;
+        if (left <= 0) {
+          player.pause();
+          fades.current.delete(player);
+          return;
+        }
+        player.volume = start * left * left; // falls fast at first, then gently, like a real decay
+        fades.current.set(player, setTimeout(fadeStep, ms / FADE_STEPS));
+      };
+      fadeStep();
+    }
+  }
+
+  /**
+   * Starts a sound. `restrikeFadeMs`: the pool's other players (earlier hits of the same sound
+   * that still ring) fade out over this time, so the player used next is already quiet when its
+   * turn comes, instead of being cut off mid-sound.
+   */
+  function play(name: string, volume: number, restrikeFadeMs?: number) {
     const pool = pools.current[name];
     if (!pool) return;
-    clearTimeout(pool.fading); // the sound came back before its fade-out ended
-    pool.fading = undefined;
     const player = pool.players[pool.next];
     pool.next = (pool.next + 1) % pool.players.length;
+    clearTimeout(fades.current.get(player)); // it may still be fading from an earlier hit
+    fades.current.delete(player);
+    if (restrikeFadeMs !== undefined) {
+      fadeOut(
+        pool.players.filter((p) => p !== player),
+        restrikeFadeMs,
+      );
+    }
     player.volume = volume;
     player.seekTo(0);
     player.play();
   }
 
-  /** Fade a sound out quickly, then stop it: softer than cutting it off. */
-  function fadeOut(name: string, ms: number) {
+  function stopAll(name: string, ms: number) {
     const pool = pools.current[name];
-    if (!pool) return;
-    clearTimeout(pool.fading);
-    const start = pool.players.map((p) => p.volume);
-    let stepIndex = 0;
-    const fadeStep = () => {
-      stepIndex += 1;
-      const left = 1 - stepIndex / FADE_STEPS;
-      pool.players.forEach((p, i) => {
-        if (left <= 0) p.pause();
-        else p.volume = start[i] * left;
-      });
-      pool.fading = left > 0 ? setTimeout(fadeStep, ms / FADE_STEPS) : undefined;
-    };
-    fadeStep();
+    if (pool) fadeOut(pool.players, ms);
   }
 
   // The timer: every step is aimed at an exact time counted from the previous target, like
@@ -168,6 +199,16 @@ export function useBacking({ groove, bpm, bars, pianoVolume, drumVolume, bassVol
     let lastBass = ''; // the bass plays one note at a time
     let nextTime = Date.now();
     let timer: ReturnType<typeof setTimeout>;
+    const pending = new Set<ReturnType<typeof setTimeout>>(); // slightly late hits
+
+    /** Runs `action` a few milliseconds from now (the human lateness). */
+    function later(ms: number, action: () => void) {
+      const t = setTimeout(() => {
+        pending.delete(t);
+        action();
+      }, ms);
+      pending.add(t);
+    }
 
     function tick() {
       const { groove: g, bpm: tempo, bars: form, ...volumes } = settings.current;
@@ -189,23 +230,35 @@ export function useBacking({ groove, bpm, bars, pianoVolume, drumVolume, bassVol
 
       for (const [drum, hits] of Object.entries(g.drums) as [Drum, typeof g.piano][]) {
         const hit = hits.find((h) => h.step === step);
-        if (hit) play(`drum:${drum}`, hit.volume * volumes.drumVolume);
+        if (hit) {
+          const volume = wobble(hit.volume * volumes.drumVolume, VOLUME_WOBBLE.drum);
+          later(lateness(LATE_MS.drum), () => play(`drum:${drum}`, volume));
+        }
       }
 
       const pianoHit = g.piano.find((h) => h.step === step);
       if (pianoHit) {
-        // A new chord: lift the old one's keys, like a pianist would.
-        if (lastChord && lastChord !== `chord:${chord}`) fadeOut(lastChord, CHORD_FADE_MS);
-        lastChord = `chord:${chord}`;
-        play(lastChord, pianoHit.volume * volumes.pianoVolume);
+        const name = `chord:${chord}`;
+        const previous = lastChord;
+        lastChord = name;
+        const volume = wobble(pianoHit.volume * volumes.pianoVolume, VOLUME_WOBBLE.chord);
+        later(lateness(LATE_MS.chord), () => {
+          // A new chord: lift the old one's keys slowly, so it dies away under the new one.
+          if (previous && previous !== name) stopAll(previous, CHORD_CHANGE_FADE_MS);
+          play(name, volume, CHORD_RESTRIKE_FADE_MS);
+        });
       }
 
       const bassNote = bass.find((n) => n.step === step);
       if (bassNote && volumes.bassVolume > 0) {
         const name = `bass:${bassNote.midi}`;
-        if (lastBass && lastBass !== name) fadeOut(lastBass, BASS_FADE_MS);
+        const previous = lastBass;
         lastBass = name;
-        play(name, bassNote.volume * volumes.bassVolume);
+        const volume = wobble(bassNote.volume * volumes.bassVolume, VOLUME_WOBBLE.bass);
+        later(lateness(LATE_MS.bass), () => {
+          if (previous && previous !== name) stopAll(previous, BASS_FADE_MS);
+          play(name, volume);
+        });
       }
 
       nextTime += stepLength(step, beatMs, g.swing);
@@ -220,8 +273,9 @@ export function useBacking({ groove, bpm, bars, pianoVolume, drumVolume, bassVol
     tick();
     return () => {
       clearTimeout(timer);
-      if (lastChord) fadeOut(lastChord, CHORD_FADE_MS);
-      if (lastBass) fadeOut(lastBass, BASS_FADE_MS);
+      pending.forEach(clearTimeout);
+      if (lastChord) stopAll(lastChord, CHORD_CHANGE_FADE_MS);
+      if (lastBass) stopAll(lastBass, BASS_FADE_MS);
     };
   }, [running]);
 

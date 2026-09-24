@@ -194,7 +194,11 @@ def piano_chord(root, intervals):
     notes = chord_voicing(root, intervals)
     for i, midi in enumerate(notes):
         f = 440 * 2 ** ((midi - 69) / 12)
-        out += piano(f, CHORD_SECONDS) * (0.8 if i == 0 else 0.6)
+        # A real hand never hits all keys at once: the notes roll in a few milliseconds apart,
+        # low to high, each a little louder or softer.
+        start = int(RATE * (i * 0.007 + rng.uniform(0, 0.004)))
+        loud = (0.8 if i == 0 else 0.6) * rng.uniform(0.88, 1.08)
+        out[start:] += piano(f, CHORD_SECONDS)[: n - start] * loud
     out = add_room(out)
     release = np.minimum(1, (n - np.arange(n)) / (RATE * 0.4))
     return out * release * 0.35
