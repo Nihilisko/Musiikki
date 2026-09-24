@@ -1,4 +1,4 @@
-"""Makes the backing track sounds: piano notes and a small drum kit.
+"""Makes the backing track sounds: piano chords and a small drum kit.
 
 Run from the project folder:  python3 scripts/generate_backing_sounds.py
 (needs numpy:  pip install numpy)
@@ -136,10 +136,65 @@ def rim():
     return (tone * 0.6 + rng.uniform(-1, 1, n) * 0.3) * np.exp(-t * 70)
 
 
-if __name__ == '__main__':
-    for midi in range(48, 73):  # C3 .. C5
+# --- Piano chords -----------------------------------------------------------------------------
+# One file per chord instead of one per note: a phone browser only lets a page load about 40
+# sounds at once, and one player per chord hit also keeps the notes perfectly together.
+
+CHORD_SECONDS = 1.6
+# Chord types the progressions use: file name -> intervals above the root.
+CHORD_TYPES = {
+    'maj': [0, 4, 7],
+    'min': [0, 3, 7],
+    '7': [0, 4, 7, 10],
+    'm7': [0, 3, 7, 10],
+    'maj7': [0, 4, 7, 11],
+    'm7b5': [0, 3, 6, 10],
+}
+
+
+def chord_voicing(root, intervals):
+    """Left hand: the root low (E2-D#3). Right hand: the other notes close together between
+    G3 and F#4, so the chords sit in the same place and move smoothly from one to the next."""
+    bass = 40 + (root - 40) % 12
+    upper = intervals[1:] if len(intervals) == 4 else intervals
+    right = sorted(55 + (root + i - 55) % 12 for i in upper)
+    return [bass] + right
+
+
+def piano_chord(root, intervals):
+    n = int(RATE * CHORD_SECONDS)
+    out = np.zeros(n)
+    notes = chord_voicing(root, intervals)
+    for i, midi in enumerate(notes):
         f = 440 * 2 ** ((midi - 69) / 12)
-        write(f'assets/sounds/piano/{NAMES[midi % 12]}{midi // 12 - 1}.wav', piano(f) * 0.5)
+        out += piano(f)[:n] * (0.8 if i == 0 else 0.6)
+    release = np.minimum(1, (n - np.arange(n)) / (RATE * 0.15))
+    return out * release * 0.35
+
+
+def write_chord_index():
+    """The app needs a require() line per file, so write that list as TypeScript."""
+    lines = [
+        '// Made by scripts/generate_backing_sounds.py - do not edit by hand.',
+        '// Piano chord sounds by file name, e.g. "a-7" = A7, "cs-m7b5" = C#m7b5.',
+        '',
+        'export const CHORD_SOUNDS: Record<string, number> = {',
+    ]
+    for root in range(12):
+        for name in CHORD_TYPES:
+            key = f'{NAMES[root]}-{name}'
+            lines.append(f"  '{key}': require('../../assets/sounds/chords/{key}.wav'),")
+    lines.append('};')
+    open('src/audio/chordSounds.ts', 'w').write('\n'.join(lines) + '\n')
+
+
+if __name__ == '__main__':
+    import os
+    os.makedirs('assets/sounds/chords', exist_ok=True)
+    for root in range(12):
+        for name, intervals in CHORD_TYPES.items():
+            write(f'assets/sounds/chords/{NAMES[root]}-{name}.wav', piano_chord(root, intervals))
+    write_chord_index()
     write('assets/sounds/drums/kick.wav', kick())
     write('assets/sounds/drums/snare.wav', snare())
     write('assets/sounds/drums/hat.wav', hat(0.09, 45))

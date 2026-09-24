@@ -1,37 +1,9 @@
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
 import { useEffect, useRef, useState } from 'react';
 
-import { PIANO_HIGH, PIANO_LOW, type Drum, type Groove } from '../music/backing';
+import type { Drum, Groove } from '../music/backing';
 import { beatInterval } from '../music/metronome';
-
-// Piano notes are named like the files: c3, cs3 (C♯3) ... c5.
-const PIANO_SOUNDS: Record<number, number> = {
-  48: require('../../assets/sounds/piano/c3.wav'),
-  49: require('../../assets/sounds/piano/cs3.wav'),
-  50: require('../../assets/sounds/piano/d3.wav'),
-  51: require('../../assets/sounds/piano/ds3.wav'),
-  52: require('../../assets/sounds/piano/e3.wav'),
-  53: require('../../assets/sounds/piano/f3.wav'),
-  54: require('../../assets/sounds/piano/fs3.wav'),
-  55: require('../../assets/sounds/piano/g3.wav'),
-  56: require('../../assets/sounds/piano/gs3.wav'),
-  57: require('../../assets/sounds/piano/a3.wav'),
-  58: require('../../assets/sounds/piano/as3.wav'),
-  59: require('../../assets/sounds/piano/b3.wav'),
-  60: require('../../assets/sounds/piano/c4.wav'),
-  61: require('../../assets/sounds/piano/cs4.wav'),
-  62: require('../../assets/sounds/piano/d4.wav'),
-  63: require('../../assets/sounds/piano/ds4.wav'),
-  64: require('../../assets/sounds/piano/e4.wav'),
-  65: require('../../assets/sounds/piano/f4.wav'),
-  66: require('../../assets/sounds/piano/fs4.wav'),
-  67: require('../../assets/sounds/piano/g4.wav'),
-  68: require('../../assets/sounds/piano/gs4.wav'),
-  69: require('../../assets/sounds/piano/a4.wav'),
-  70: require('../../assets/sounds/piano/as4.wav'),
-  71: require('../../assets/sounds/piano/b4.wav'),
-  72: require('../../assets/sounds/piano/c5.wav'),
-};
+import { CHORD_SOUNDS } from './chordSounds';
 
 const DRUM_SOUNDS: Record<Drum, number> = {
   kick: require('../../assets/sounds/drums/kick.wav'),
@@ -42,20 +14,32 @@ const DRUM_SOUNDS: Record<Drum, number> = {
   rim: require('../../assets/sounds/drums/rim.wav'),
 };
 
-/** Two players per piano note (a new hit can start while the last one rings), three per drum. */
-const PLAYERS_PER_NOTE = 2;
-const PLAYERS_PER_DRUM = 3;
+// Two players per sound: a new hit can start while the last one still rings. Only the chords
+// of the chosen progression are loaded, so there are at most about 20 players: a phone
+// browser refuses to load more than about 40 sounds at once.
+const PLAYERS_PER_SOUND = 2;
 const BEATS_PER_BAR = 4;
 /** Clicks before the band comes in, so you can get ready. */
 const COUNT_IN_BEATS = 4;
 
 type Pool = { players: AudioPlayer[]; next: number };
 
+function makePool(source: number): Pool {
+  return {
+    players: Array.from({ length: PLAYERS_PER_SOUND }, () => createAudioPlayer(source)),
+    next: 0,
+  };
+}
+
+function removePool(pool: Pool) {
+  pool.players.forEach((p) => p.remove());
+}
+
 type Options = {
   groove: Groove;
   bpm: number;
-  /** The piano notes for every bar of the form, e.g. 12 bars of blues. */
-  bars: number[][];
+  /** The piano chord sound of every bar of the form (see chordSoundName), e.g. 12 bars. */
+  bars: string[];
   /** 0-1 */
   pianoVolume: number;
   drumVolume: number;
@@ -73,47 +57,52 @@ export function useBacking({ groove, bpm, bars, pianoVolume, drumVolume }: Optio
   const settings = useRef({ groove, bpm, bars, pianoVolume, drumVolume });
   settings.current = { groove, bpm, bars, pianoVolume, drumVolume };
 
-  const piano = useRef<Record<number, Pool> | null>(null);
   const drums = useRef<Record<Drum, Pool> | null>(null);
+  const chords = useRef<Record<string, Pool>>({});
 
-  // Load every sound once, and free them when the screen closes.
+  // Load the drums once, and free everything when the screen closes.
   useEffect(() => {
     setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
-    const pool = (source: number, size: number): Pool => ({
-      players: Array.from({ length: size }, () => createAudioPlayer(source)),
-      next: 0,
-    });
-    const pianoPools: Record<number, Pool> = {};
-    for (let note = PIANO_LOW; note <= PIANO_HIGH; note++) {
-      pianoPools[note] = pool(PIANO_SOUNDS[note], PLAYERS_PER_NOTE);
-    }
-    const drumPools = {} as Record<Drum, Pool>;
+    const loaded = {} as Record<Drum, Pool>;
     for (const drum of Object.keys(DRUM_SOUNDS) as Drum[]) {
-      drumPools[drum] = pool(DRUM_SOUNDS[drum], PLAYERS_PER_DRUM);
+      loaded[drum] = makePool(DRUM_SOUNDS[drum]);
     }
-    piano.current = pianoPools;
-    drums.current = drumPools;
+    drums.current = loaded;
+    const chordPools = chords.current;
     return () => {
-      [...Object.values(pianoPools), ...Object.values(drumPools)].forEach((p) =>
-        p.players.forEach((player) => player.remove()),
-      );
-      piano.current = null;
+      Object.values(loaded).forEach(removePool);
+      Object.values(chordPools).forEach(removePool);
       drums.current = null;
     };
   }, []);
 
-  function play(pool: Pool | undefined, volume: number): AudioPlayer | undefined {
+  // Load the chords of the progression; free the ones it no longer uses.
+  const chordList = [...new Set(bars)].sort().join(' ');
+  useEffect(() => {
+    const wanted = chordList.split(' ');
+    const pools = chords.current;
+    for (const name of Object.keys(pools)) {
+      if (!wanted.includes(name)) {
+        removePool(pools[name]);
+        delete pools[name];
+      }
+    }
+    for (const name of wanted) {
+      if (!pools[name] && CHORD_SOUNDS[name]) pools[name] = makePool(CHORD_SOUNDS[name]);
+    }
+  }, [chordList]);
+
+  function play(pool: Pool | undefined, volume: number) {
     if (!pool) return;
     const player = pool.players[pool.next];
     pool.next = (pool.next + 1) % pool.players.length;
     player.volume = volume;
     player.seekTo(0);
     player.play();
-    return player;
   }
 
-  function damp(notes: number[]) {
-    notes.forEach((note) => piano.current?.[note]?.players.forEach((p) => p.pause()));
+  function damp(name: string) {
+    chords.current[name]?.players.forEach((p) => p.pause());
   }
 
   // The timer: every step is aimed at an exact time counted from the previous target, like
@@ -126,7 +115,7 @@ export function useBacking({ groove, bpm, bars, pianoVolume, drumVolume }: Optio
     let countIn = COUNT_IN_BEATS;
     let bar = 0;
     let step = 0;
-    let lastNotes: number[] = []; // piano notes of the last chord, damped when it changes
+    let lastChord = ''; // damped when the chord changes
     let nextTime = Date.now();
     let timer: ReturnType<typeof setTimeout>;
 
@@ -165,11 +154,11 @@ export function useBacking({ groove, bpm, bars, pianoVolume, drumVolume }: Optio
 
       const pianoHit = g.piano.find((h) => h.step === step);
       if (pianoHit) {
-        const notes = form[bar];
-        // A new chord: lift the keys the new chord doesn't use, like a pianist would.
-        damp(lastNotes.filter((n) => !notes.includes(n)));
-        notes.forEach((note) => play(piano.current?.[note], pianoHit.volume * pv));
-        lastNotes = notes;
+        const chord = form[bar];
+        // A new chord: lift the old one's keys, like a pianist would.
+        if (lastChord && lastChord !== chord) damp(lastChord);
+        play(chords.current[chord], pianoHit.volume * pv);
+        lastChord = chord;
       }
 
       step += 1;
@@ -184,7 +173,7 @@ export function useBacking({ groove, bpm, bars, pianoVolume, drumVolume }: Optio
     tick();
     return () => {
       clearTimeout(timer);
-      damp(lastNotes);
+      if (lastChord) damp(lastChord);
     };
   }, [running]);
 

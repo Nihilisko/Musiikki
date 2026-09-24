@@ -7,7 +7,7 @@ import ChipRow from '../components/ChipRow';
 import Dropdown from '../components/Dropdown';
 import KeyPicker from '../components/KeyPicker';
 import Stepper from '../components/Stepper';
-import { GROOVES, grooveById, pianoVoicing } from '../music/backing';
+import { GROOVES, grooveById, chordSoundName } from '../music/backing';
 import type { KeyMode } from '../music/circle';
 import { clampBpm } from '../music/metronome';
 import { keyScale, progressionChords, PROGRESSIONS } from '../music/progressions';
@@ -37,10 +37,10 @@ export default function JamScreen() {
   const groove = grooveById(grooveId);
   const tonicName = spellScale(tonic, keyScale(mode)).rootName;
 
-  // The piano notes of every bar, remade only when the chords change.
+  // The piano sound of every bar, remade only when the chords change.
   const chordKey = chords.map((c) => c.name).join(' ');
   const bars = useMemo(
-    () => progression.bars.map((i) => pianoVoicing(chords[i].root, chords[i].type)),
+    () => progression.bars.map((i) => chordSoundName(chords[i].root, chords[i].type)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [chordKey, progression],
   );

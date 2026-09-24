@@ -82,22 +82,20 @@ export function grooveById(id: string): Groove {
   return GROOVES.find((g) => g.id === id) ?? GROOVES[0];
 }
 
-/** Lowest and highest piano notes there are sounds for (C3 and C5). */
-export const PIANO_LOW = 48;
-export const PIANO_HIGH = 72;
+const NOTE_FILE_NAMES = ['c', 'cs', 'd', 'ds', 'e', 'f', 'fs', 'g', 'gs', 'a', 'as', 'b'];
+const CHORD_FILE_NAMES: Record<string, string> = {
+  '': 'maj',
+  m: 'min',
+  '7': '7',
+  m7: 'm7',
+  maj7: 'maj7',
+  'm7♭5': 'm7b5',
+};
 
 /**
- * Piano notes for a chord: the root low (C3–B3) for the left hand, and the other chord
- * notes (plus the root if there is room) above middle C for the right hand.
+ * Name of the piano sound for a chord, e.g. "a-7" for A7. Every chord is one ready-made
+ * sound file (see scripts/generate_backing_sounds.py), so a chord hit needs only one player.
  */
-export function pianoVoicing(root: number, chord: ChordType): number[] {
-  const bass = PIANO_LOW + pitchClass(root);
-  const upper = chord.tones
-    .filter((t) => t.interval !== 0 || chord.tones.length === 3)
-    .map((t) => {
-      let note = 60 + pitchClass(root + t.interval); // C4 upwards
-      if (note > PIANO_HIGH) note -= 12;
-      return note;
-    });
-  return [bass, ...new Set(upper)].sort((a, b) => a - b);
+export function chordSoundName(root: number, chord: ChordType): string {
+  return `${NOTE_FILE_NAMES[pitchClass(root)]}-${CHORD_FILE_NAMES[chord.symbol] ?? 'maj'}`;
 }
