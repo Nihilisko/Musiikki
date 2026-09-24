@@ -2,7 +2,7 @@ import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-aud
 import { useEffect, useRef } from 'react';
 
 import { pitchClass } from '../music/scales';
-import { DRONE_LOW, DRONE_SOUNDS } from './droneSounds';
+import { DRONE_LOOP_MS, DRONE_LOW, DRONE_SOUNDS } from './droneSounds';
 
 type Options = {
   /** Pitch class of the drone note (0 = C). */
@@ -14,76 +14,83 @@ type Options = {
   playing: boolean;
 };
 
-/** How long the sound takes to fade in or out, so it never starts or stops with a click. */
-const FADE_MS = 250;
-const FADE_STEPS = 10;
+/** Quick fade when stopping, so the sound never ends with a click. */
+const STOP_FADE_MS = 200;
+
+/** Two players per note (versions a and b), started in turn. */
+type Voice = [AudioPlayer, AudioPlayer];
+
+function makeVoice(midi: number): Voice {
+  const [a, b] = DRONE_SOUNDS[midi];
+  return [createAudioPlayer(a), createAudioPlayer(b)];
+}
 
 /**
- * Plays a steady drone: the root (C3–B3) and, if asked, the 5th above it. Changing the key
- * while it plays swaps the notes; stopping or leaving the screen fades it out.
+ * Plays a steady drone: the root (C3–B3) and, if asked, the 5th above it. The files fade in
+ * and out by themselves, so starting the next one before the last ends gives an unbroken
+ * sound. Changing the key restarts it on the new notes; stopping or leaving fades it out.
  */
 export function useDrone({ root, fifth, volume, playing }: Options) {
-  const players = useRef<{ root: AudioPlayer; fifth: AudioPlayer } | null>(null);
-  const fadeTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Latest settings, read when each new version starts.
+  const settings = useRef({ fifth, volume });
+  settings.current = { fifth, volume };
+  const voices = useRef<{ root: Voice; fifth: Voice } | null>(null);
 
-  // Two looping players, made once and freed when the screen closes.
   useEffect(() => {
     setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
-    const made = {
-      root: createAudioPlayer(DRONE_SOUNDS[DRONE_LOW]),
-      fifth: createAudioPlayer(DRONE_SOUNDS[DRONE_LOW + 7]),
-    };
-    made.root.loop = true;
-    made.fifth.loop = true;
-    made.root.volume = 0; // silent until started, then faded in
-    made.fifth.volume = 0;
-    players.current = made;
-    return () => {
-      if (fadeTimer.current) clearInterval(fadeTimer.current);
-      made.root.remove();
-      made.fifth.remove();
-      players.current = null;
-    };
   }, []);
 
-  // Choose the notes for the key.
+  // Volume and the 5th switch apply straight away to what is playing.
   useEffect(() => {
-    const p = players.current;
-    if (!p) return;
-    const rootMidi = DRONE_LOW + pitchClass(root);
-    p.root.replace(DRONE_SOUNDS[rootMidi]);
-    p.fifth.replace(DRONE_SOUNDS[rootMidi + 7]);
-    p.root.loop = true;
-    p.fifth.loop = true;
-    if (playing) {
-      p.root.play();
-      if (fifth) p.fifth.play();
-    }
-    // Only when the key changes; playing and fifth are handled below.
-  }, [root]);
+    const v = voices.current;
+    if (!v) return;
+    v.root.forEach((p) => (p.volume = volume));
+    v.fifth.forEach((p) => (p.volume = fifth ? volume * 0.7 : 0));
+  }, [volume, fifth]);
 
-  // Start, stop and volume, with a short fade.
   useEffect(() => {
-    const p = players.current;
-    if (!p) return;
-    if (fadeTimer.current) clearInterval(fadeTimer.current);
-    const targetRoot = playing ? volume : 0;
-    const targetFifth = playing && fifth ? volume * 0.7 : 0; // the 5th a little quieter
-    if (targetRoot > 0) p.root.play();
-    if (targetFifth > 0) p.fifth.play();
-    const fromRoot = p.root.volume;
-    const fromFifth = p.fifth.volume;
-    let step = 0;
-    fadeTimer.current = setInterval(() => {
-      step += 1;
-      const t = step / FADE_STEPS;
-      p.root.volume = fromRoot + (targetRoot - fromRoot) * t;
-      p.fifth.volume = fromFifth + (targetFifth - fromFifth) * t;
-      if (step >= FADE_STEPS) {
-        if (fadeTimer.current) clearInterval(fadeTimer.current);
-        if (targetRoot === 0) p.root.pause();
-        if (targetFifth === 0) p.fifth.pause();
-      }
-    }, FADE_MS / FADE_STEPS);
-  }, [playing, fifth, volume]);
+    if (!playing) return;
+    const rootMidi = DRONE_LOW + pitchClass(root);
+    const made = { root: makeVoice(rootMidi), fifth: makeVoice(rootMidi + 7) };
+    voices.current = made;
+
+    // Start version a, then b, then a… every DRONE_LOOP_MS. Each start is aimed at an exact
+    // time counted from the previous one, like the metronome, so delays don't add up.
+    let turn = 0;
+    let next = Date.now();
+    let timer: ReturnType<typeof setTimeout>;
+    const start = () => {
+      const { fifth: withFifth, volume: vol } = settings.current;
+      const r = made.root[turn % 2];
+      const f = made.fifth[turn % 2];
+      r.volume = vol;
+      f.volume = withFifth ? vol * 0.7 : 0; // the 5th a little quieter
+      r.seekTo(0);
+      f.seekTo(0);
+      r.play();
+      f.play();
+      turn += 1;
+      next += DRONE_LOOP_MS;
+      timer = setTimeout(start, Math.max(0, next - Date.now()));
+    };
+    start();
+
+    return () => {
+      clearTimeout(timer);
+      voices.current = null;
+      // Fade out, then free the players.
+      const all = [...made.root, ...made.fifth];
+      const from = all.map((p) => p.volume);
+      const steps = 8;
+      let step = 0;
+      const fade = setInterval(() => {
+        step += 1;
+        all.forEach((p, i) => (p.volume = from[i] * (1 - step / steps)));
+        if (step >= steps) {
+          clearInterval(fade);
+          all.forEach((p) => p.remove());
+        }
+      }, STOP_FADE_MS / steps);
+    };
+  }, [playing, root]);
 }
