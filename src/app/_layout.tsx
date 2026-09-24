@@ -117,6 +117,10 @@ function AppStack() {
           options={{ title: 'Chord types', headerLeft: () => <BackButton label="Back" /> }}
         />
         <Stack.Screen
+          name="scale-degrees"
+          options={{ title: 'Scale degrees', headerLeft: () => <BackButton label="Back" /> }}
+        />
+        <Stack.Screen
           name="backing"
           options={{ title: 'Backing tracks', headerLeft: () => <BackButton label="Menu" /> }}
         />

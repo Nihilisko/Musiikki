@@ -4,14 +4,17 @@ import { useEffect, useRef } from 'react';
 import { PIANO_NOTES } from './pianoNotes';
 
 /** Players kept loaded: recently heard notes replay at once, and a phone browser allows ~40. */
-const CACHE_SIZE = 12;
+const CACHE_SIZE = 16;
 /** Longest wait for a new note to load before playing anyway. */
 const LOAD_WAIT_MS = 1200;
 
+/** Notes that start together, `at` milliseconds after the start. */
+export type NoteStep = { notes: number[]; at: number };
+
 /**
- * Plays piano notes for ear training: all at once (a chord, or an interval "together") or one
- * after another with `gapMs` between them (an interval up or down, a broken chord).
- * Returns `play(notes, gapMs)`; a gap of 0 plays them together.
+ * Plays piano notes for ear training. `playSteps` plays a timed list of chords or notes (e.g.
+ * a cadence and then a note); `play(notes, gapMs)` is the simple case: one after another with
+ * `gapMs` between them, or all together when the gap is 0.
  */
 export function useNotePlayer() {
   // Loaded players by MIDI note, oldest first (a Map remembers the order things were added).
@@ -52,26 +55,38 @@ export function useNotePlayer() {
     player.play();
   }
 
-  function play(notes: number[], gapMs: number) {
+  function playSteps(steps: NoteStep[]) {
     timers.current.forEach(clearTimeout);
     timers.current = [];
     cache.current.forEach((p) => p.pause());
 
-    const players = notes.map(playerFor);
+    // Several steps can share a note (a chord that comes back): each gets its own start.
+    const needed = [...new Set(steps.flatMap((s) => s.notes))];
+    const players = new Map(needed.map((midi) => [midi, playerFor(midi)]));
     const go = () =>
-      players.forEach((p, i) => {
-        if (i === 0 || gapMs === 0) start(p);
-        else timers.current.push(setTimeout(() => start(p), i * gapMs));
+      steps.forEach((step) => {
+        const startStep = () => step.notes.forEach((midi) => start(players.get(midi)!));
+        if (step.at === 0) startStep();
+        else timers.current.push(setTimeout(startStep, step.at));
       });
 
     // New notes need a moment to load; notes played together must start at the same instant.
     const began = Date.now();
     const waitForLoad = () => {
-      if (players.every((p) => p.isLoaded) || Date.now() - began > LOAD_WAIT_MS) go();
-      else timers.current.push(setTimeout(waitForLoad, 30));
+      if ([...players.values()].every((p) => p.isLoaded) || Date.now() - began > LOAD_WAIT_MS) {
+        go();
+      } else {
+        timers.current.push(setTimeout(waitForLoad, 30));
+      }
     };
     waitForLoad();
   }
 
-  return { play };
+  function play(notes: number[], gapMs: number) {
+    playSteps(
+      gapMs === 0 ? [{ notes, at: 0 }] : notes.map((midi, i) => ({ notes: [midi], at: i * gapMs })),
+    );
+  }
+
+  return { play, playSteps };
 }

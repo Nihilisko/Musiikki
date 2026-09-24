@@ -28,9 +28,10 @@ const ITEMS: Item[] = [
     href: '/chord-types',
   },
   {
-    title: 'Notes',
-    description: 'Name a note from a reference note (relative pitch).',
+    title: 'Scale degrees',
+    description: 'Hear the key, then name the degree of a note (1, 3, 5…).',
     icon: 'radio-button-on-outline',
+    href: '/scale-degrees',
   },
   {
     title: 'Progressions',
