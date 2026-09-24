@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react';
-import { PanResponder, StyleSheet, View } from 'react-native';
-import Svg, { Circle, ClipPath, Defs, G, Path, Text as SvgText } from 'react-native-svg';
+import { memo, useEffect, useRef, useState } from 'react';
+import { Animated, Easing, PanResponder, StyleSheet, View } from 'react-native';
+import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg';
 
 import { circleSegment, type KeyMode } from '../music/circle';
 import { darkColors } from '../theme/colors';
@@ -38,10 +38,12 @@ const LEGENDS: Record<KeyMode, Legend> = {
  * A fixed mask covers the disc; only the window at the top shows the key's seven chords.
  */
 export default function CircleOfFifths({ index, mode, onChange, onModeChange, size }: Props) {
-  // While dragging, the exact angle follows the finger; otherwise it sits on `index`.
-  const [dragRotation, setDragRotation] = useState<number | null>(null);
-  const rotation = dragRotation ?? index * SEGMENT;
-
+  // The disc's angle lives in an Animated value: turning it only rotates the drawn disc, so
+  // nothing is redrawn while the finger moves. `angle` mirrors it for the gesture maths, and
+  // `topIndex` (the key at the top) changes only when a new key reaches the window.
+  const spin = useRef(new Animated.Value(index * SEGMENT)).current;
+  const angle = useRef(index * SEGMENT);
+  const [topIndex, setTopIndex] = useState(index);
   const center = size / 2;
   const r = {
     outer: size / 2 - 2,
@@ -56,44 +58,79 @@ export default function CircleOfFifths({ index, mode, onChange, onModeChange, si
   } as const;
 
   // The gesture handlers are created once, so they read the latest values through refs.
-  const latest = useRef({ onChange, onModeChange, rotation });
-  latest.current = { onChange, onModeChange, rotation };
-  const drag = useRef({ startX: 0, startY: 0, lastAngle: 0, rotation: 0, moved: false });
+  const latest = useRef({ onChange, onModeChange });
+  latest.current = { onChange, onModeChange };
+  const drag = useRef({ startX: 0, startY: 0, lastAngle: 0, moved: false });
+
+  function setAngle(value: number) {
+    angle.current = value;
+    spin.setValue(value);
+    const top = wrap(Math.round(value / SEGMENT));
+    setTopIndex((old) => (old === top ? old : top));
+  }
+
+  /** Glide to a key, the short way round (from F to C is one step, not eleven). */
+  function glideTo(target: number) {
+    const turns = Math.round((angle.current - target) / 360);
+    const to = target + turns * 360;
+    const id = spin.addListener(({ value }) => {
+      angle.current = value;
+    });
+    Animated.timing(spin, {
+      toValue: to,
+      duration: 200,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start(() => {
+      spin.removeListener(id);
+      angle.current = to;
+    });
+    setTopIndex(wrap(Math.round(to / SEGMENT)));
+  }
+
+  // A new key from outside (a tap, the key buttons): turn the disc there smoothly.
+  useEffect(() => {
+    if (wrap(Math.round(angle.current / SEGMENT)) !== index) glideTo(index * SEGMENT);
+    // Only when the chosen key changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index]);
 
   const pan = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: (event) => {
+        spin.stopAnimation((value) => {
+          angle.current = value;
+        });
         const { locationX, locationY } = event.nativeEvent;
         drag.current = {
           startX: locationX,
           startY: locationY,
           lastAngle: angleAt(locationX, locationY, center),
-          rotation: latest.current.rotation,
           moved: false,
         };
       },
       onPanResponderMove: (_, gesture) => {
         if (Math.abs(gesture.dx) + Math.abs(gesture.dy) > 6) drag.current.moved = true;
-        const angle = angleAt(
+        const a = angleAt(
           drag.current.startX + gesture.dx,
           drag.current.startY + gesture.dy,
           center,
         );
         // Add up small steps so crossing the top (359° -> 0°) doesn't jump.
-        let step = angle - drag.current.lastAngle;
+        let step = a - drag.current.lastAngle;
         if (step > 180) step -= 360;
         if (step < -180) step += 360;
-        drag.current.lastAngle = angle;
-        drag.current.rotation -= step; // turning clockwise brings earlier keys to the top
-        setDragRotation(drag.current.rotation);
+        drag.current.lastAngle = a;
+        setAngle(angle.current - step); // turning clockwise brings earlier keys to the top
       },
       onPanResponderRelease: () => {
-        const { moved, startX, startY, rotation: finalRotation } = drag.current;
-        setDragRotation(null);
+        const { moved, startX, startY } = drag.current;
         if (moved) {
-          latest.current.onChange(wrap(Math.round(finalRotation / SEGMENT)));
+          const nearest = Math.round(angle.current / SEGMENT);
+          glideTo(nearest * SEGMENT);
+          latest.current.onChange(wrap(nearest));
           return;
         }
         // A tap: in the window it brings that chord's key to the top;
@@ -101,16 +138,23 @@ export default function CircleOfFifths({ index, mode, onChange, onModeChange, si
         const tapped = angleAt(startX, startY, center);
         if (tapped <= 45 || tapped >= 315) {
           const signed = tapped > 180 ? tapped - 360 : tapped;
-          latest.current.onChange(wrap(Math.round((signed + latest.current.rotation) / SEGMENT)));
+          latest.current.onChange(wrap(Math.round((signed + angle.current) / SEGMENT)));
         } else if (tapped > 45 && tapped < 180) {
           latest.current.onModeChange('major');
         } else {
           latest.current.onModeChange('minor');
         }
       },
-      onPanResponderTerminate: () => setDragRotation(null),
+      onPanResponderTerminate: () => glideTo(Math.round(angle.current / SEGMENT) * SEGMENT),
     }),
   ).current;
+
+  // The disc turns the other way to the angle: a larger angle brings later keys to the top.
+  const rotate = spin.interpolate({
+    inputRange: [0, 360],
+    outputRange: ['0deg', '-360deg'],
+    extrapolate: 'extend',
+  });
 
   // The window: three cells in the outer and middle rings, one in the inner ring.
   const windowCells = [
@@ -120,21 +164,19 @@ export default function CircleOfFifths({ index, mode, onChange, onModeChange, si
   ];
   const tonicRing = mode === 'major' ? rings.outer : rings.middle;
 
+  // The mask covers the whole disc except the window: the outer circle with the window cells
+  // cut out of it (drawn with the even-odd rule, so the cells become holes).
+  const maskPath =
+    circlePath(center, r.outer) +
+    windowCells
+      .map((cell) => ringSegment(center, cell.ring[0], cell.ring[1], cell.angle))
+      .join(' ');
+
   return (
     <View style={{ width: size, height: size }}>
-      <Svg width={size} height={size}>
-        <Defs>
-          <ClipPath id="window">
-            {windowCells.map((cell, i) => (
-              <Path key={i} d={ringSegment(center, cell.ring[0], cell.ring[1], cell.angle)} />
-            ))}
-          </ClipPath>
-        </Defs>
-
-        {/* The mask: a dark disc that hides everything outside the window. */}
+      {/* Bottom: the window cells' background; the tonic cell is highlighted. */}
+      <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
         <Circle cx={center} cy={center} r={r.outer} fill={MASK} />
-
-        {/* Window cells stay still; the tonic cell is highlighted. */}
         {windowCells.map((cell, i) => (
           <Path
             key={i}
@@ -142,48 +184,16 @@ export default function CircleOfFifths({ index, mode, onChange, onModeChange, si
             fill={cell.ring === tonicRing && cell.angle === 0 ? colors.accent : CELL}
           />
         ))}
+      </Svg>
 
-        {/* The turning disc, visible only through the window. */}
-        <G clipPath="url(#window)">
-          {Array.from({ length: 12 }, (_, i) => {
-            const angle = normalise(i * SEGMENT - rotation);
-            const segment = circleSegment(i);
-            const atTop = Math.abs(angle) < SEGMENT / 2;
-            const dark = (ring: readonly number[]) => atTop && ring === tonicRing;
-            return (
-              <G key={i}>
-                <Label
-                  center={center}
-                  angle={angle}
-                  r={(r.middle + r.outer) / 2}
-                  text={segment.major}
-                  size={size * 0.07}
-                  color={dark(rings.outer) ? '#1a1a1a' : colors.text}
-                  bold
-                />
-                <Label
-                  center={center}
-                  angle={angle}
-                  r={(r.inner + r.middle) / 2}
-                  text={segment.minor}
-                  size={size * 0.05}
-                  color={dark(rings.middle) ? '#1a1a1a' : colors.text}
-                  bold
-                />
-                <Label
-                  center={center}
-                  angle={angle}
-                  r={(r.hub + r.inner) / 2}
-                  text={segment.diminished}
-                  size={size * 0.042}
-                  color={colors.text}
-                />
-              </G>
-            );
-          })}
-        </G>
+      {/* The turning disc, drawn once and rotated as a whole. */}
+      <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ rotate }] }]}>
+        <DiscLabels size={size} r={r} topIndex={topIndex} mode={mode} />
+      </Animated.View>
 
-        {/* Outlines of the window, drawn on top so they don't move. */}
+      {/* Top: the mask with the window cut out, the window outlines, legends and hub. */}
+      <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
+        <Path d={maskPath} fill={MASK} fillRule="evenodd" />
         {windowCells.map((cell, i) => (
           <Path
             key={i}
@@ -209,18 +219,18 @@ export default function CircleOfFifths({ index, mode, onChange, onModeChange, si
           return (
             <G key={legendMode}>
               {cells.map((cell, i) => {
-                const angle = cell.slot * SEGMENT + legend.turn;
+                const a = cell.slot * SEGMENT + legend.turn;
                 return (
                   <G key={i}>
                     <Path
-                      d={ringSegment(center, cell.ring[0], cell.ring[1], angle)}
+                      d={ringSegment(center, cell.ring[0], cell.ring[1], a)}
                       fill="none"
                       stroke={lineColor}
                       strokeWidth={1.5}
                     />
                     <Label
                       center={center}
-                      angle={angle}
+                      angle={a}
                       r={(cell.ring[0] + cell.ring[1]) / 2}
                       text={cell.text}
                       size={size * (cell.ring === rings.outer ? 0.05 : 0.04)}
@@ -261,6 +271,61 @@ export default function CircleOfFifths({ index, mode, onChange, onModeChange, si
     </View>
   );
 }
+
+type DiscProps = {
+  size: number;
+  r: { outer: number; middle: number; inner: number; hub: number };
+  /** The key in the window, whose tonic label is drawn dark on the highlighted cell. */
+  topIndex: number;
+  mode: KeyMode;
+};
+
+/**
+ * The printed disc: every key's labels at its own angle, drawn at rotation 0. The parent turns
+ * it as a whole, so it is redrawn only when the key at the top or the mode changes.
+ */
+const DiscLabels = memo(function DiscLabels({ size, r, topIndex, mode }: DiscProps) {
+  const center = size / 2;
+  return (
+    <Svg width={size} height={size}>
+      {Array.from({ length: 12 }, (_, i) => {
+        const angle = i * SEGMENT;
+        const segment = circleSegment(i);
+        const atTop = i === topIndex;
+        return (
+          <G key={i} rotation={angle} origin={`${center}, ${center}`}>
+            <Label
+              center={center}
+              angle={0}
+              r={(r.middle + r.outer) / 2}
+              text={segment.major}
+              size={size * 0.07}
+              color={atTop && mode === 'major' ? '#1a1a1a' : colors.text}
+              bold
+            />
+            <Label
+              center={center}
+              angle={0}
+              r={(r.inner + r.middle) / 2}
+              text={segment.minor}
+              size={size * 0.05}
+              color={atTop && mode === 'minor' ? '#1a1a1a' : colors.text}
+              bold
+            />
+            <Label
+              center={center}
+              angle={0}
+              r={(r.hub + r.inner) / 2}
+              text={segment.diminished}
+              size={size * 0.042}
+              color={colors.text}
+            />
+          </G>
+        );
+      })}
+    </Svg>
+  );
+});
 
 type LabelProps = {
   center: number;
@@ -311,12 +376,6 @@ function wrap(i: number): number {
   return ((i % 12) + 12) % 12;
 }
 
-/** Angle folded into -180...180, so "near the top" is simply a small number. */
-function normalise(angle: number): number {
-  const a = ((angle % 360) + 360) % 360;
-  return a > 180 ? a - 360 : a;
-}
-
 /** Point at `angle` degrees clockwise from the top, `r` away from the centre. */
 function polar(center: number, angle: number, r: number): [number, number] {
   const radians = (angle * Math.PI) / 180;
@@ -327,6 +386,11 @@ function polar(center: number, angle: number, r: number): [number, number] {
 function angleAt(x: number, y: number, center: number): number {
   const degrees = (Math.atan2(x - center, center - y) * 180) / Math.PI;
   return (degrees + 360) % 360;
+}
+
+/** SVG path of a full circle (two half arcs). */
+function circlePath(center: number, r: number): string {
+  return `M ${center - r} ${center} A ${r} ${r} 0 1 1 ${center + r} ${center} A ${r} ${r} 0 1 1 ${center - r} ${center} Z `;
 }
 
 /** SVG path of one ring slice between radii r1 < r2, centred on `angle`. */
