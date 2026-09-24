@@ -13,11 +13,11 @@ Tarkistettu syyskuussa 2026. Googlen vaatimukset muuttuvat usein, joten tarkista
 
 ## B. Sovellus (koodi)
 
-- [ ] **Claude** – Sisäinen tunnus (`slug`) "musiikki" → "scalesmith". Paketin nimi `com.scalesmith.app` on jo valmis.
-- [ ] **Claude** – Versionumero ja `versionCode`, joka kasvaa automaattisesti EAS-buildissa.
-- [ ] **Claude** – Käynnistyskuva (splash screen): punainen tausta ja kermanvärinen S.
+- [x] **Claude** – Sisäinen tunnus (`slug`) "musiikki" → "scalesmith". Paketin nimi `com.scalesmith.app` on jo valmis.
+- [x] **Claude** – Versionumero ja `versionCode`, joka kasvaa automaattisesti EAS-buildissa.
+- [x] **Claude** – Käynnistyskuva (splash screen): punainen tausta ja kermanvärinen S.
 - [x] **Claude** – Kohde-API 36 (vaatimus 31.8.2026 alkaen). Expo SDK 57 käyttää sitä oletuksena.
-- [ ] **Claude** – Luvat: vain mikrofoni, ja sille selitysteksti. Tarkistetaan, ettei buildiin tule turhia lupia.
+- [x] **Claude** – Luvat: paketissa on vain mikrofoni (RECORD_AUDIO, MODIFY_AUDIO_SETTINGS) ja INTERNET. Taustatoisto on pois päältä, ja ylimääräiset oletusluvat (tallennustila, SYSTEM_ALERT_WINDOW, VIBRATE, foreground service) on estetty. Tarkistettu Expon manifestista.
 - [ ] **Claude** – Premium-lukitus (pelit ja treenit) ja kertaosto Google Playn kautta. Google Play Billing Library 8 tai uudempi (vaatimus 31.8.2026 alkaen). Vaatii kehitysversion, sillä se ei toimi Expo Gossa.
 - [x] **Claude** – Tuotantoprofiili tekee AAB-paketin (`eas.json` production). Allekirjoitus hoidetaan Play App Signingilla.
 

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "ScaleSmith",
-    "slug": "musiikki",
+    "slug": "scalesmith",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
@@ -17,18 +17,40 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.scalesmith.app"
+      "package": "com.scalesmith.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.VIBRATE",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "scheme": "musiikki",
+    "scheme": "scalesmith",
     "plugins": [
       "expo-router",
       [
         "expo-audio",
         {
-          "microphonePermission": "ScaleSmith listens to your instrument through the microphone to tune it."
+          "microphonePermission": "ScaleSmith listens to your instrument through the microphone to tune it and to check your intonation. The sound is processed on your device and is never recorded or sent anywhere.",
+          "enableBackgroundPlayback": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#D42330"
         }
       ]
     ]
