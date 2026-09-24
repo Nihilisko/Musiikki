@@ -25,6 +25,7 @@ const ITEMS: Item[] = [
     title: 'Chord types',
     description: 'Hear a chord and tell major, minor, 7th and more apart.',
     icon: 'musical-notes-outline',
+    href: '/chord-types',
   },
   {
     title: 'Notes',

@@ -87,6 +87,18 @@ export type IntervalQuestion = {
   direction: Direction;
 };
 
+/** Time between the two notes of an interval played up or down. */
+export const INTERVAL_GAP_MS = 850;
+
+/** The notes of a question in playing order, and the gap between them (0 = together). */
+export function questionNotes(q: IntervalQuestion): { notes: number[]; gapMs: number } {
+  if (q.direction === 'together') return { notes: [q.low, q.high], gapMs: 0 };
+  return {
+    notes: q.direction === 'down' ? [q.high, q.low] : [q.low, q.high],
+    gapMs: INTERVAL_GAP_MS,
+  };
+}
+
 /** Lowest and highest piano notes there are sounds for (C3 and C6). */
 export const QUESTION_LOW = 48;
 export const QUESTION_HIGH = 84;

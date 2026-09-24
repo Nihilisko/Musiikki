@@ -1,21 +1,19 @@
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
 import { useEffect, useRef } from 'react';
 
-import type { IntervalQuestion } from '../music/intervals';
 import { PIANO_NOTES } from './pianoNotes';
 
-/** Time between the two notes of an up or down interval. */
-const GAP_MS = 850;
 /** Players kept loaded: recently heard notes replay at once, and a phone browser allows ~40. */
 const CACHE_SIZE = 12;
 /** Longest wait for a new note to load before playing anyway. */
 const LOAD_WAIT_MS = 1200;
 
 /**
- * Plays the two piano notes of an interval question: one after the other (up or down) or
- * both at once (together). Returns `play(question)`.
+ * Plays piano notes for ear training: all at once (a chord, or an interval "together") or one
+ * after another with `gapMs` between them (an interval up or down, a broken chord).
+ * Returns `play(notes, gapMs)`; a gap of 0 plays them together.
  */
-export function useIntervalPlayer() {
+export function useNotePlayer() {
   // Loaded players by MIDI note, oldest first (a Map remembers the order things were added).
   const cache = useRef(new Map<number, AudioPlayer>());
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -54,25 +52,22 @@ export function useIntervalPlayer() {
     player.play();
   }
 
-  function play(q: IntervalQuestion) {
+  function play(notes: number[], gapMs: number) {
     timers.current.forEach(clearTimeout);
     timers.current = [];
     cache.current.forEach((p) => p.pause());
 
-    const [first, second] = q.direction === 'down' ? [q.high, q.low] : [q.low, q.high];
-    const a = playerFor(first);
-    const b = playerFor(second);
+    const players = notes.map(playerFor);
+    const go = () =>
+      players.forEach((p, i) => {
+        if (i === 0 || gapMs === 0) start(p);
+        else timers.current.push(setTimeout(() => start(p), i * gapMs));
+      });
 
-    const go = () => {
-      start(a);
-      if (q.direction === 'together') start(b);
-      else timers.current.push(setTimeout(() => start(b), GAP_MS));
-    };
-
-    // New notes need a moment to load; "together" must start both at the same instant.
+    // New notes need a moment to load; notes played together must start at the same instant.
     const began = Date.now();
     const waitForLoad = () => {
-      if ((a.isLoaded && b.isLoaded) || Date.now() - began > LOAD_WAIT_MS) go();
+      if (players.every((p) => p.isLoaded) || Date.now() - began > LOAD_WAIT_MS) go();
       else timers.current.push(setTimeout(waitForLoad, 30));
     };
     waitForLoad();

@@ -113,6 +113,10 @@ function AppStack() {
           options={{ title: 'Intervals', headerLeft: () => <BackButton label="Back" /> }}
         />
         <Stack.Screen
+          name="chord-types"
+          options={{ title: 'Chord types', headerLeft: () => <BackButton label="Back" /> }}
+        />
+        <Stack.Screen
           name="backing"
           options={{ title: 'Backing tracks', headerLeft: () => <BackButton label="Menu" /> }}
         />
