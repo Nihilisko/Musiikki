@@ -31,8 +31,8 @@ Tarkistettu syyskuussa 2026. Googlen vaatimukset muuttuvat usein, joten tarkista
 ## D. Kauppasivu
 
 - [ ] **Yhdessä** – Nimi (enintään 30 merkkiä), lyhyt kuvaus (80) ja pitkä kuvaus (4000). Luonnokset: `docs/store/listing.md` (myös tietoturvaosion vastaukset).
-- [ ] **Claude** – Kuvake 512 × 512 PNG, ilman läpinäkyvyyttä.
-- [ ] **Claude** – Esittelykuva 1024 × 500 (JPEG tai 24-bittinen PNG, ei läpinäkyvyyttä). Tärkeä sisältö keskelle noin 924 × 400 alueelle.
+- [x] **Claude** – Kuvake 512 × 512 PNG, ilman läpinäkyvyyttä: `assets/store/icon-512.png`.
+- [x] **Claude** – Esittelykuva 1024 × 500 (`assets/store/feature-graphic.png`, lähde `feature-graphic.source.html`) (JPEG tai 24-bittinen PNG, ei läpinäkyvyyttä). Tärkeä sisältö keskelle noin 924 × 400 alueelle.
 - [ ] **Yhdessä** – Kuvakaappaukset: 2–8 kpl puhelimesta. Suositus on vähintään 4 kpl, joiden koko on 1080 px tai enemmän.
 - [ ] **Sinä** – Kategoria (Music & Audio tai Education) ja yhteyssähköposti.
 
