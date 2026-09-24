@@ -13,10 +13,11 @@ export type Groove = {
   id: string;
   name: string;
   /**
-   * Steps per beat: 2 = straight eighths, 3 = triplets. Shuffle and swing use triplets and
-   * leave out the middle one, which gives the long-short "swing" feel.
+   * Every bar has 8 steps: each beat and the "and" after it. `swing` says where in the beat
+   * the "and" lands: 0.5 = straight eighths (rock, pop), 0.67 = full triplet swing. A little
+   * less than full triplets (about 0.6) sounds relaxed instead of heavy.
    */
-  stepsPerBeat: number;
+  swing: number;
   drums: Partial<Record<Drum, Hit[]>>;
   /** When the piano plays the chord. */
   piano: Hit[];
@@ -24,59 +25,68 @@ export type Groove = {
   defaultBpm: number;
 };
 
+/** Steps in a 4/4 bar: each beat and its "and". */
+export const STEPS_PER_BAR = 8;
+
 const hits = (volume: number, ...steps: number[]): Hit[] => steps.map((step) => ({ step, volume }));
 
+// Step numbers: 0 = beat 1, 1 = "and", 2 = beat 2, 3 = "and", 4 = beat 3 ...
 export const GROOVES: Groove[] = [
   {
     id: 'rock',
     name: 'Rock',
-    stepsPerBeat: 2, // 8 steps in a 4/4 bar
+    swing: 0.5,
     drums: {
       kick: hits(0.9, 0, 4, 5),
       snare: hits(0.7, 2, 6),
       hat: [...hits(0.45, 0, 2, 4, 6), ...hits(0.3, 1, 3, 5, 7)],
     },
-    piano: [...hits(0.55, 0, 4), ...hits(0.4, 3, 7)],
+    piano: hits(0.45, 0, 4),
     defaultBpm: 110,
   },
   {
     id: 'shuffle',
     name: 'Blues shuffle',
-    stepsPerBeat: 3, // 12 triplet steps in a bar
+    swing: 0.62,
     drums: {
-      kick: hits(0.85, 0, 6),
-      snare: hits(0.7, 3, 9),
-      hat: [...hits(0.45, 0, 3, 6, 9), ...hits(0.3, 2, 5, 8, 11)],
+      kick: hits(0.85, 0, 4),
+      snare: hits(0.7, 2, 6),
+      hat: [...hits(0.45, 0, 2, 4, 6), ...hits(0.28, 1, 3, 5, 7)],
     },
-    piano: [...hits(0.5, 0, 6), ...hits(0.4, 2, 5, 8, 11)],
+    piano: [...hits(0.45, 0), ...hits(0.32, 3)], // beat 1 and the "and" of 2
     defaultBpm: 95,
   },
   {
     id: 'pop',
     name: 'Pop / ballad',
-    stepsPerBeat: 2,
+    swing: 0.5,
     drums: {
       kick: hits(0.8, 0, 3, 4),
       rim: hits(0.5, 2, 6),
       hat: [...hits(0.35, 0, 2, 4, 6), ...hits(0.22, 1, 3, 5, 7)],
     },
-    piano: hits(0.5, 0, 4),
+    piano: [...hits(0.45, 0), ...hits(0.3, 4)],
     defaultBpm: 84,
   },
   {
     id: 'swing',
     name: 'Jazz swing',
-    stepsPerBeat: 3,
+    swing: 0.64,
     drums: {
-      ride: [...hits(0.5, 0, 3, 6, 9), ...hits(0.35, 5, 11)],
-      hat: hits(0.35, 3, 9), // the foot hi-hat on 2 and 4
-      kick: hits(0.25, 0, 3, 6, 9), // "feathered": felt more than heard
-      rim: hits(0.3, 11),
+      ride: [...hits(0.5, 0, 2, 4, 6), ...hits(0.35, 3, 7)], // "ding, ding-a ding, ding-a"
+      hat: hits(0.35, 2, 6), // the foot hi-hat on 2 and 4
+      kick: hits(0.25, 0, 2, 4, 6), // "feathered": felt more than heard
+      rim: hits(0.3, 7),
     },
-    piano: [...hits(0.5, 0), ...hits(0.45, 5)], // the Charleston rhythm: 1 and the "and" of 2
+    piano: [...hits(0.45, 0), ...hits(0.35, 3)], // the Charleston rhythm: 1 and the "and" of 2
     defaultBpm: 140,
   },
 ];
+
+/** How long a step lasts: the beat is split at the swing point. */
+export function stepLength(step: number, beatMs: number, swing: number): number {
+  return (step % 2 === 0 ? swing : 1 - swing) * beatMs;
+}
 
 export function grooveById(id: string): Groove {
   return GROOVES.find((g) => g.id === id) ?? GROOVES[0];

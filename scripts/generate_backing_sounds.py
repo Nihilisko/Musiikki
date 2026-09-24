@@ -62,8 +62,8 @@ def biquad(x, kind, freq, q=0.707):
 PIANO_SECONDS = 2.4
 
 
-def piano(freq):
-    n = int(RATE * PIANO_SECONDS)
+def piano(freq, seconds=PIANO_SECONDS):
+    n = int(RATE * seconds)
     t = np.arange(n) / RATE
     out = np.zeros(n)
     inharm = 0.00008 * (freq / 261.6) ** 0.5  # kept small so the pitch stays true
@@ -140,7 +140,7 @@ def rim():
 # One file per chord instead of one per note: a phone browser only lets a page load about 40
 # sounds at once, and one player per chord hit also keeps the notes perfectly together.
 
-CHORD_SECONDS = 1.6
+CHORD_SECONDS = 2.6
 # Chord types the progressions use: file name -> intervals above the root.
 CHORD_TYPES = {
     'maj': [0, 4, 7],
@@ -161,14 +161,41 @@ def chord_voicing(root, intervals):
     return [bass] + right
 
 
+# Room sound: the impulse response of a small room is roughly a burst of noise that dies away.
+# Convolving the dry piano with it adds the soft tail you hear after a chord in a real room.
+REVERB_SECONDS = 1.2
+
+
+def room_impulse():
+    n = int(RATE * REVERB_SECONDS)
+    t = np.arange(n) / RATE
+    ir = rng.uniform(-1, 1, n) * np.exp(-t * 5.5)  # about 1.2 s until it is gone
+    ir = biquad(ir, 'lowpass', 4500)  # walls soak up the highs
+    ir[: int(RATE * 0.015)] = 0  # a short gap before the first echoes
+    return ir / np.sqrt(np.sum(ir ** 2))
+
+
+ROOM = None
+
+
+def add_room(dry, wet=0.3):
+    global ROOM
+    if ROOM is None:
+        ROOM = room_impulse()
+    size = len(dry) + len(ROOM)
+    tail = np.fft.irfft(np.fft.rfft(dry, size) * np.fft.rfft(ROOM, size), size)[: len(dry)]
+    return dry + tail * wet
+
+
 def piano_chord(root, intervals):
     n = int(RATE * CHORD_SECONDS)
     out = np.zeros(n)
     notes = chord_voicing(root, intervals)
     for i, midi in enumerate(notes):
         f = 440 * 2 ** ((midi - 69) / 12)
-        out += piano(f)[:n] * (0.8 if i == 0 else 0.6)
-    release = np.minimum(1, (n - np.arange(n)) / (RATE * 0.15))
+        out += piano(f, CHORD_SECONDS) * (0.8 if i == 0 else 0.6)
+    out = add_room(out)
+    release = np.minimum(1, (n - np.arange(n)) / (RATE * 0.4))
     return out * release * 0.35
 
 

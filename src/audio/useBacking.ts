@@ -2,7 +2,7 @@ import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-aud
 import { useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
-import type { Drum, Groove } from '../music/backing';
+import { STEPS_PER_BAR, stepLength, type Drum, type Groove } from '../music/backing';
 import { beatInterval } from '../music/metronome';
 import { CHORD_SOUNDS } from './chordSounds';
 
@@ -19,11 +19,15 @@ const DRUM_SOUNDS: Record<Drum, number> = {
 // of the chosen progression are loaded, so there are at most about 20 players: a phone
 // browser refuses to load more than about 40 sounds at once.
 const PLAYERS_PER_SOUND = 2;
-const BEATS_PER_BAR = 4;
 /** Clicks before the band comes in, so you can get ready. */
 const COUNT_IN_BEATS = 4;
 
-type Pool = { players: AudioPlayer[]; next: number };
+/** `fading` is the timer of a soft fade-out that is going on, if any. */
+type Pool = { players: AudioPlayer[]; next: number; fading?: ReturnType<typeof setTimeout> };
+
+/** How long a chord takes to fade out when the next chord comes. */
+const FADE_MS = 250;
+const FADE_STEPS = 5;
 
 function makePool(source: number): Pool {
   return {
@@ -46,6 +50,7 @@ function unlockPool(pool: Pool) {
 }
 
 function removePool(pool: Pool) {
+  clearTimeout(pool.fading);
   pool.players.forEach((p) => p.remove());
 }
 
@@ -111,6 +116,8 @@ export function useBacking({ groove, bpm, bars, pianoVolume, drumVolume }: Optio
 
   function play(pool: Pool | undefined, volume: number) {
     if (!pool) return;
+    clearTimeout(pool.fading); // the chord came back before its fade-out ended
+    pool.fading = undefined;
     const player = pool.players[pool.next];
     pool.next = (pool.next + 1) % pool.players.length;
     player.volume = volume;
@@ -118,8 +125,23 @@ export function useBacking({ groove, bpm, bars, pianoVolume, drumVolume }: Optio
     player.play();
   }
 
+  /** Lift the keys of a chord: fade it out quickly, then stop it, so the room tail stays soft. */
   function damp(name: string) {
-    chords.current[name]?.players.forEach((p) => p.pause());
+    const pool = chords.current[name];
+    if (!pool) return;
+    clearTimeout(pool.fading);
+    const start = pool.players.map((p) => p.volume);
+    let stepIndex = 0;
+    const fadeStep = () => {
+      stepIndex += 1;
+      const left = 1 - stepIndex / FADE_STEPS;
+      pool.players.forEach((p, i) => {
+        if (left <= 0) p.pause();
+        else p.volume = start[i] * left;
+      });
+      pool.fading = left > 0 ? setTimeout(fadeStep, FADE_MS / FADE_STEPS) : undefined;
+    };
+    fadeStep();
   }
 
   // The timer: every step is aimed at an exact time counted from the previous target, like
@@ -156,13 +178,9 @@ export function useBacking({ groove, bpm, bars, pianoVolume, drumVolume }: Optio
         return;
       }
 
-      const stepsPerBar = BEATS_PER_BAR * g.stepsPerBeat;
-      if (step >= stepsPerBar) step = 0; // the groove changed to one with fewer steps
       if (bar >= form.length) bar = 0; // the progression changed to a shorter one
 
-      if (step % g.stepsPerBeat === 0) {
-        setPosition({ bar, beat: step / g.stepsPerBeat });
-      }
+      if (step % 2 === 0) setPosition({ bar, beat: step / 2 });
 
       for (const [drum, hits] of Object.entries(g.drums) as [Drum, typeof g.piano][]) {
         const hit = hits.find((h) => h.step === step);
@@ -178,12 +196,12 @@ export function useBacking({ groove, bpm, bars, pianoVolume, drumVolume }: Optio
         lastChord = chord;
       }
 
+      nextTime += stepLength(step, beatMs, g.swing);
       step += 1;
-      if (step >= stepsPerBar) {
+      if (step >= STEPS_PER_BAR) {
         step = 0;
         bar = (bar + 1) % form.length;
       }
-      nextTime += beatMs / g.stepsPerBeat;
       timer = setTimeout(tick, Math.max(0, nextTime - Date.now()));
     }
 

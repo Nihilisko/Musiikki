@@ -49,7 +49,7 @@ export default function JamScreen() {
     groove,
     bpm,
     bars,
-    pianoVolume: 0.8,
+    pianoVolume: 0.55,
     drumVolume: MIX[drumMix],
   });
 
