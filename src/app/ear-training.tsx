@@ -37,6 +37,7 @@ const ITEMS: Item[] = [
     title: 'Progressions',
     description: 'Hear a chord progression and name its degrees (I–IV–V…).',
     icon: 'git-branch-outline',
+    href: '/harmony',
   },
 ];
 

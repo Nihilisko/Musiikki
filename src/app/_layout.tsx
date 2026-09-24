@@ -121,6 +121,10 @@ function AppStack() {
           options={{ title: 'Scale degrees', headerLeft: () => <BackButton label="Back" /> }}
         />
         <Stack.Screen
+          name="harmony"
+          options={{ title: 'Progressions', headerLeft: () => <BackButton label="Back" /> }}
+        />
+        <Stack.Screen
           name="backing"
           options={{ title: 'Backing tracks', headerLeft: () => <BackButton label="Menu" /> }}
         />
