@@ -8,6 +8,7 @@ import ChipRow from '../components/ChipRow';
 import Dropdown from '../components/Dropdown';
 import KeyPicker from '../components/KeyPicker';
 import Stepper from '../components/Stepper';
+import StrumPatternView from '../components/StrumPatternView';
 import { GROOVES, grooveById, chordSoundName } from '../music/backing';
 import { fingerBassLine, type FretPosition } from '../music/bassFingering';
 import { bassLine, type BassNote } from '../music/bassLines';
@@ -17,6 +18,7 @@ import { keyScale, progressionChords, PROGRESSIONS } from '../music/progressions
 import { noteName } from '../music/notes';
 import { pitchClass } from '../music/scales';
 import { spellChord, spellScale } from '../music/spelling';
+import { patternsForGroove } from '../music/strums';
 import { useInstrument } from '../state/InstrumentContext';
 import type { Colors } from '../theme/colors';
 import { useTheme, useThemedStyles } from '../theme/ThemeContext';
@@ -38,12 +40,17 @@ export default function JamScreen() {
   const [bassOn, setBassOn] = useState(true);
   const [pickedBar, setPickedBar] = useState(0); // bar whose bass line is shown when stopped
   const { instrument, tuning } = useInstrument();
+  const isBass = instrument.id === 'bass';
+  // The chosen strumming pattern for each groove; a groove starts with the one that suits it.
+  const [patternChoice, setPatternChoice] = useState<Record<string, string>>({});
 
   const mode = MODES[modeIndex];
   const progressions = PROGRESSIONS[mode];
   const progression = progressions[Math.min(progressionIndex, progressions.length - 1)];
   const chords = progressionChords(tonic, mode, progression);
   const groove = grooveById(grooveId);
+  const patterns = patternsForGroove(grooveId);
+  const pattern = patterns.find((p) => p.id === patternChoice[grooveId]) ?? patterns[0];
   const tonicName = spellScale(tonic, keyScale(mode)).rootName;
 
   // The piano sound and bass line of every bar, remade only when the chords or groove change.
@@ -147,18 +154,35 @@ export default function JamScreen() {
         })}
       </View>
 
-      <View style={styles.bassHeader}>
-        <Text style={styles.sectionLabel}>
-          Bass line · bar {shownBar + 1} · {shownChord.name}
-        </Text>
-        <Text style={styles.hint}>{lineNames}</Text>
-      </View>
-      <BassLineBoard
-        strings={boardStrings}
-        stringNames={boardStrings.map((m) => noteName(m, tuning.flats))}
-        notes={boardNotes}
-      />
-      {!running && <Text style={styles.hint}>Tap a bar to see its bass line.</Text>}
+      {isBass ? (
+        <>
+          <View style={styles.bassHeader}>
+            <Text style={styles.sectionLabel}>
+              Bass line · bar {shownBar + 1} · {shownChord.name}
+            </Text>
+            <Text style={styles.hint}>{lineNames}</Text>
+          </View>
+          <BassLineBoard
+            strings={boardStrings}
+            stringNames={boardStrings.map((m) => noteName(m, tuning.flats))}
+            notes={boardNotes}
+          />
+          {!running && <Text style={styles.hint}>Tap a bar to see its bass line.</Text>}
+        </>
+      ) : (
+        <>
+          <View style={styles.strumHeader}>
+            <Text style={styles.sectionLabel}>Strum</Text>
+            <Dropdown
+              label={pattern.name}
+              options={patterns.map((p) => `${p.name} (${p.level})`)}
+              selected={patterns.indexOf(pattern)}
+              onSelect={(i) => setPatternChoice((c) => ({ ...c, [grooveId]: patterns[i].id }))}
+            />
+          </View>
+          <StrumPatternView pattern={pattern} step={running && bar >= 0 ? step : -1} />
+        </>
+      )}
 
       <View style={styles.row}>
         <KeyPicker root={tonic} rootName={tonicName} onChange={setTonic} />
@@ -202,7 +226,9 @@ export default function JamScreen() {
       <View style={styles.row}>
         <View style={styles.switchText}>
           <Text style={styles.label}>Bass</Text>
-          <Text style={styles.hint}>Turn off to play the bass line yourself</Text>
+          <Text style={styles.hint}>
+            {isBass ? 'Turn off to play the bass line yourself' : 'Turn off for a lighter backing'}
+          </Text>
         </View>
         <Switch
           value={bassOn}
@@ -297,6 +323,12 @@ function makeStyles(colors: Colors) {
       flexDirection: 'row',
       flexWrap: 'wrap',
       gap: 6,
+    },
+    strumHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: -4,
     },
     bassHeader: {
       gap: 10,
