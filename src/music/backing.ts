@@ -31,6 +31,8 @@ export const STEPS_PER_BAR = 8;
 const hits = (volume: number, ...steps: number[]): Hit[] => steps.map((step) => ({ step, volume }));
 
 // Step numbers: 0 = beat 1, 1 = "and", 2 = beat 2, 3 = "and", 4 = beat 3 ...
+// The hi-hat is kept soft: it is the brightest drum, and bright sounds seem louder to the ear
+// (on a phone speaker, where the kick almost disappears, even more so).
 export const GROOVES: Groove[] = [
   {
     id: 'rock',
@@ -39,7 +41,7 @@ export const GROOVES: Groove[] = [
     drums: {
       kick: hits(0.9, 0, 4, 5),
       snare: hits(0.7, 2, 6),
-      hat: [...hits(0.45, 0, 2, 4, 6), ...hits(0.3, 1, 3, 5, 7)],
+      hat: [...hits(0.18, 0, 2, 4, 6), ...hits(0.12, 1, 3, 5, 7)],
     },
     piano: hits(0.45, 0, 4),
     defaultBpm: 110,
@@ -51,7 +53,7 @@ export const GROOVES: Groove[] = [
     drums: {
       kick: hits(0.85, 0, 4),
       snare: hits(0.7, 2, 6),
-      hat: [...hits(0.45, 0, 2, 4, 6), ...hits(0.28, 1, 3, 5, 7)],
+      hat: [...hits(0.18, 0, 2, 4, 6), ...hits(0.11, 1, 3, 5, 7)],
     },
     piano: [...hits(0.45, 0), ...hits(0.32, 3)], // beat 1 and the "and" of 2
     defaultBpm: 95,
@@ -63,7 +65,7 @@ export const GROOVES: Groove[] = [
     drums: {
       kick: hits(0.8, 0, 3, 4),
       rim: hits(0.5, 2, 6),
-      hat: [...hits(0.35, 0, 2, 4, 6), ...hits(0.22, 1, 3, 5, 7)],
+      hat: [...hits(0.14, 0, 2, 4, 6), ...hits(0.09, 1, 3, 5, 7)],
     },
     piano: [...hits(0.45, 0), ...hits(0.3, 4)],
     defaultBpm: 84,
@@ -74,7 +76,7 @@ export const GROOVES: Groove[] = [
     swing: 0.64,
     drums: {
       ride: [...hits(0.5, 0, 2, 4, 6), ...hits(0.35, 3, 7)], // "ding, ding-a ding, ding-a"
-      hat: hits(0.35, 2, 6), // the foot hi-hat on 2 and 4
+      hat: hits(0.18, 2, 6), // the foot hi-hat on 2 and 4
       kick: hits(0.25, 0, 2, 4, 6), // "feathered": felt more than heard
       rim: hits(0.3, 7),
     },
